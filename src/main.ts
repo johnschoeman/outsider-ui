@@ -1,6 +1,6 @@
-import { Effect, Match as M, Schema as S, Option } from 'effect'
+import { Option } from 'effect'
 import { Runtime } from 'foldkit'
-import { Class, Html, div, h1, p, button, OnClick } from 'foldkit/html'
+import { Class, Html, div, h1 } from 'foldkit/html'
 import * as App from './app'
 import { Landing, Lobby, Game } from './pages'
 
@@ -12,6 +12,8 @@ const view = (model: App.AppModel): Html => {
       App.joinLobbyIdChanged,
       App.createLobbyClicked,
       App.joinLobbyClicked,
+      App.showRules,
+      App.closeRules,
     )
   }
 
@@ -44,6 +46,11 @@ const view = (model: App.AppModel): Html => {
       App.continueToWordCreation,
       App.secretWordChanged,
       App.submitSecretWord,
+      App.continueToGuessing,
+      App.wordGuessed,
+      App.wordNotGuessed,
+      App.voteForPlayer,
+      App.newGame,
     )
   }
 

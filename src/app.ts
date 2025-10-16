@@ -1,6 +1,6 @@
-import { Effect, Match as M, Schema as S, Option } from 'effect'
+import { Match as M, Schema as S, Option } from 'effect'
 import { ST, ts } from 'foldkit/schema'
-import { generateLobbyId, createPlayer } from './domain'
+import { generateLobbyId } from './domain'
 import { Landing, Lobby, Game } from './pages'
 
 // APP STATE
@@ -30,6 +30,14 @@ const StartGameClicked = ts('StartGameClicked')
 const ContinueToWordCreation = ts('ContinueToWordCreation')
 const SecretWordChanged = ts('SecretWordChanged', { word: S.String })
 const SubmitSecretWord = ts('SubmitSecretWord')
+const ContinueToGuessing = ts('ContinueToGuessing')
+const TimerTick = ts('TimerTick')
+const WordGuessed = ts('WordGuessed')
+const WordNotGuessed = ts('WordNotGuessed')
+const VoteForPlayer = ts('VoteForPlayer', { playerId: S.String })
+const NewGame = ts('NewGame')
+const ShowRules = ts('ShowRules')
+const CloseRules = ts('CloseRules')
 
 export const Message = S.Union(
   NoOp,
@@ -42,6 +50,14 @@ export const Message = S.Union(
   ContinueToWordCreation,
   SecretWordChanged,
   SubmitSecretWord,
+  ContinueToGuessing,
+  TimerTick,
+  WordGuessed,
+  WordNotGuessed,
+  VoteForPlayer,
+  NewGame,
+  ShowRules,
+  CloseRules,
 )
 
 type NoOp = ST<typeof NoOp>
@@ -54,6 +70,14 @@ type StartGameClicked = ST<typeof StartGameClicked>
 type ContinueToWordCreation = ST<typeof ContinueToWordCreation>
 type SecretWordChanged = ST<typeof SecretWordChanged>
 type SubmitSecretWord = ST<typeof SubmitSecretWord>
+type ContinueToGuessing = ST<typeof ContinueToGuessing>
+type TimerTick = ST<typeof TimerTick>
+type WordGuessed = ST<typeof WordGuessed>
+type WordNotGuessed = ST<typeof WordNotGuessed>
+type VoteForPlayer = ST<typeof VoteForPlayer>
+type NewGame = ST<typeof NewGame>
+type ShowRules = ST<typeof ShowRules>
+type CloseRules = ST<typeof CloseRules>
 
 export type Message = ST<typeof Message>
 
@@ -255,6 +279,165 @@ export const update = (model: AppModel, message: Message): AppModel => {
           gamePage: Option.some(updatedGameModel),
         }
       },
+
+      ContinueToGuessing: () => {
+        if (Option.isNone(model.gamePage)) {
+          return model
+        }
+
+        const updatedGameState = {
+          ...model.gamePage.value.gameState,
+          phase: Option.some('PlayerGuessing' as const),
+          phaseTimer: Option.some(300), // 5 minutes
+        }
+
+        const updatedGameModel = {
+          ...model.gamePage.value,
+          gameState: updatedGameState,
+        }
+        
+        return {
+          ...model,
+          gamePage: Option.some(updatedGameModel),
+        }
+      },
+
+      TimerTick: () => {
+        if (Option.isNone(model.gamePage)) {
+          return model
+        }
+
+        const currentTimer = Option.getOrElse(model.gamePage.value.gameState.phaseTimer, () => 0)
+        
+        if (currentTimer <= 0) {
+          return model // Timer already finished
+        }
+
+        const newTimer = currentTimer - 1
+        const updatedGameState = {
+          ...model.gamePage.value.gameState,
+          phaseTimer: Option.some(newTimer),
+        }
+
+        const updatedGameModel = {
+          ...model.gamePage.value,
+          gameState: updatedGameState,
+        }
+        
+        return {
+          ...model,
+          gamePage: Option.some(updatedGameModel),
+        }
+      },
+
+      WordGuessed: () => {
+        if (Option.isNone(model.gamePage)) {
+          return model
+        }
+
+        const updatedGameState = {
+          ...model.gamePage.value.gameState,
+          wordGuessed: Option.some(true),
+          phase: Option.some('Voting' as const),
+          phaseTimer: Option.some(300), // 5 minutes for voting
+        }
+
+        const updatedGameModel = {
+          ...model.gamePage.value,
+          gameState: updatedGameState,
+        }
+        
+        return {
+          ...model,
+          gamePage: Option.some(updatedGameModel),
+        }
+      },
+
+      WordNotGuessed: () => {
+        if (Option.isNone(model.gamePage)) {
+          return model
+        }
+
+        const updatedGameState = {
+          ...model.gamePage.value.gameState,
+          wordGuessed: Option.some(false),
+          phase: Option.some('Voting' as const),
+          phaseTimer: Option.some(300), // 5 minutes for voting
+        }
+
+        const updatedGameModel = {
+          ...model.gamePage.value,
+          gameState: updatedGameState,
+        }
+        
+        return {
+          ...model,
+          gamePage: Option.some(updatedGameModel),
+        }
+      },
+
+      VoteForPlayer: ({ playerId }) => {
+        if (Option.isNone(model.gamePage) || Option.isNone(model.currentPlayerId)) {
+          return model
+        }
+
+        const currentPlayerId = model.currentPlayerId.value
+        const updatedPlayers = [...model.gamePage.value.gameState.players].map(player => {
+          if (player.id === currentPlayerId) {
+            return {
+              ...player,
+              vote: Option.some(playerId),
+              hasVoted: true,
+            }
+          }
+          return player
+        })
+
+        // Check if all players have voted
+        const allVoted = updatedPlayers.every(player => player.hasVoted)
+        
+        const updatedGameState = {
+          ...model.gamePage.value.gameState,
+          players: updatedPlayers,
+          ...(allVoted ? {
+            phase: Option.some('Results' as const),
+            phaseTimer: Option.none(),
+          } : {}),
+        }
+
+        const updatedGameModel = {
+          ...model.gamePage.value,
+          gameState: updatedGameState,
+        }
+        
+        return {
+          ...model,
+          gamePage: Option.some(updatedGameModel),
+        }
+      },
+
+      NewGame: () => ({
+        ...model,
+        currentState: 'Landing',
+        currentPlayerId: Option.none(),
+        currentLobbyId: Option.none(),
+        landingPage: {
+          ...Landing.init(),
+          playerName: model.currentPlayerName,
+        },
+        lobbyPage: Option.none(),
+        gamePage: Option.none(),
+      }),
+
+      ShowRules: () => ({
+        ...model,
+        landingPage: Landing.toggleRulesModal(model.landingPage),
+      }),
+
+      CloseRules: () => ({
+        ...model,
+        landingPage: Landing.toggleRulesModal(model.landingPage),
+      }),
     }),
   )
 }
@@ -286,3 +469,24 @@ export const secretWordChanged = (word: string): Message =>
 
 export const submitSecretWord = (): Message => 
   SubmitSecretWord.make()
+
+export const continueToGuessing = (): Message => 
+  ContinueToGuessing.make()
+
+export const wordGuessed = (): Message => 
+  WordGuessed.make()
+
+export const wordNotGuessed = (): Message => 
+  WordNotGuessed.make()
+
+export const voteForPlayer = (playerId: string): Message => 
+  VoteForPlayer.make({ playerId })
+
+export const newGame = (): Message => 
+  NewGame.make()
+
+export const showRules = (): Message => 
+  ShowRules.make()
+
+export const closeRules = (): Message => 
+  CloseRules.make()

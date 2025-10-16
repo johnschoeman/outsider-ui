@@ -1,4 +1,4 @@
-import { Schema as S, Array, Option } from 'effect'
+import { Schema as S, Option } from 'effect'
 import { Player, PlayerRole } from './player'
 
 export const GamePhase = S.Literal(
@@ -63,11 +63,11 @@ export const startGame = (gameState: GameState): GameState => {
   
   const updatedPlayers = shuffledPlayers.map((player, index) => {
     if (index === masterIndex) {
-      return { ...player, role: Option.some('Master' as PlayerRole) }
+      return { ...player, role: Option.some('Master' satisfies PlayerRole) }
     } else if (index === outsiderIndex) {
-      return { ...player, role: Option.some('Outsider' as PlayerRole) }
+      return { ...player, role: Option.some('Outsider' satisfies PlayerRole) }
     } else {
-      return { ...player, role: Option.some('Commoner' as PlayerRole) }
+      return { ...player, role: Option.some('Commoner' satisfies PlayerRole) }
     }
   })
 
