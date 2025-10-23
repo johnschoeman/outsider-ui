@@ -1,5 +1,5 @@
 import { Schema as S, Option } from 'effect'
-import { Player, PlayerRole } from './player'
+import { Player } from './player'
 
 export const GamePhase = S.Literal(
   'RoleAssignment',
@@ -61,13 +61,13 @@ export const startGame = (gameState: GameState): GameState => {
   const masterIndex = 0
   const outsiderIndex = 1
   
-  const updatedPlayers = shuffledPlayers.map((player, index) => {
+  const updatedPlayers = shuffledPlayers.map((player, index): Player => {
     if (index === masterIndex) {
-      return { ...player, role: Option.some('Master' satisfies PlayerRole) }
+      return { ...player, role: Option.some('Master' as const) }
     } else if (index === outsiderIndex) {
-      return { ...player, role: Option.some('Outsider' satisfies PlayerRole) }
+      return { ...player, role: Option.some('Outsider' as const) }
     } else {
-      return { ...player, role: Option.some('Commoner' satisfies PlayerRole) }
+      return { ...player, role: Option.some('Commoner' as const) }
     }
   })
 

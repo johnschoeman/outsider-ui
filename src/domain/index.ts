@@ -1,4 +1,4 @@
-export * from './player'
-export * from './game'
-export * from './lobby'
-export * from './timer'
+export * as Player from './player'
+export * as Game from './game'
+export * as Lobby from './lobby'
+export * as Timer from './timer'

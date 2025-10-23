@@ -1,7 +1,7 @@
 import { Match as M, Schema as S, Option } from 'effect'
 import { ST, ts } from 'foldkit/schema'
-import { generateLobbyId } from './domain'
-import { Landing, Lobby, Game } from './pages'
+import { Lobby } from './domain'
+import { Landing, Lobby as LobbyPage, Game } from './pages'
 
 // APP STATE
 export const AppState = S.Literal('Landing', 'Lobby', 'Game')
@@ -13,7 +13,7 @@ export const AppModel = S.Struct({
   currentPlayerName: S.String,
   currentLobbyId: S.Option(S.String),
   landingPage: Landing.LandingModel,
-  lobbyPage: S.Option(Lobby.LobbyModel),
+  lobbyPage: S.Option(LobbyPage.LobbyModel),
   gamePage: S.Option(Game.GameModel),
 })
 
@@ -144,9 +144,9 @@ export const update = (model: AppModel, message: Message): AppModel => {
           }
         }
 
-        const lobbyId = generateLobbyId()
+        const lobbyId = Lobby.generateLobbyId()
         const playerId = crypto.randomUUID()
-        const lobbyModel = Lobby.init(lobbyId, playerId, model.currentPlayerName)
+        const lobbyModel = LobbyPage.init(lobbyId, playerId, model.currentPlayerName)
 
         return {
           ...model,
@@ -171,7 +171,7 @@ export const update = (model: AppModel, message: Message): AppModel => {
         }
 
         const playerId = crypto.randomUUID()
-        const lobbyModel = Lobby.init(validatedLanding.joinLobbyId, playerId, model.currentPlayerName)
+        const lobbyModel = LobbyPage.init(validatedLanding.joinLobbyId, playerId, model.currentPlayerName)
 
         return {
           ...model,
@@ -197,7 +197,7 @@ export const update = (model: AppModel, message: Message): AppModel => {
           return model
         }
 
-        const updatedLobby = Lobby.startGame(model.lobbyPage.value)
+        const updatedLobby = LobbyPage.startGame(model.lobbyPage.value)
         const gameModel: Game.GameModel = {
           gameState: updatedLobby.gameState,
           currentPlayerId: model.currentPlayerId.value,
@@ -429,10 +429,13 @@ export const update = (model: AppModel, message: Message): AppModel => {
         gamePage: Option.none(),
       }),
 
-      ShowRules: () => ({
+      ShowRules: () => {
+        console.log("HELLO ShowRules")
+        return ({
         ...model,
         landingPage: Landing.toggleRulesModal(model.landingPage),
-      }),
+      })
+      },
 
       CloseRules: () => ({
         ...model,

@@ -37,3 +37,17 @@ export const clearVote = (player: Player): Player => ({
   vote: Option.none(),
   hasVoted: false,
 })
+
+export const validateName = (name: string): Option.Option<string> => {
+  const trimmedName = name.trim()
+  
+  if (trimmedName.length === 0) {
+    return Option.some('Please enter your name')
+  }
+  
+  if (trimmedName.length > 20) {
+    return Option.some('Name must be 20 characters or less')
+  }
+  
+  return Option.none()
+}

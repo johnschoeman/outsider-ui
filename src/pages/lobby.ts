@@ -13,10 +13,10 @@ import {
   li,
   span 
 } from 'foldkit/html'
-import { GameState, Player } from '../domain'
+import { Game, Player } from '../domain'
 
 export const LobbyModel = S.Struct({
-  gameState: GameState,
+  gameState: Game.GameState,
   currentPlayerId: S.String,
 })
 
@@ -44,7 +44,7 @@ export const init = (lobbyId: string, playerId: string, playerName: string): Lob
   currentPlayerId: playerId,
 })
 
-export const addPlayer = (player: Player) => (model: LobbyModel): LobbyModel => ({
+export const addPlayer = (player: Player.Player) => (model: LobbyModel): LobbyModel => ({
   ...model,
   gameState: {
     ...model.gameState,
@@ -92,7 +92,7 @@ export const startGame = (model: LobbyModel): LobbyModel => {
   }
 }
 
-const renderPlayerList = (players: readonly Player[], currentPlayerId: string): Html => {
+const renderPlayerList = (players: readonly Player.Player[], currentPlayerId: string): Html => {
   const currentPlayer = players.find(p => p.id === currentPlayerId)
   const otherPlayers = players.filter(p => p.id !== currentPlayerId)
 
@@ -144,7 +144,7 @@ const renderPlayerList = (players: readonly Player[], currentPlayerId: string): 
   )
 }
 
-const renderGameInfo = (gameState: GameState): Html => {
+const renderGameInfo = (gameState: Game.GameState): Html => {
   const playerCount = gameState.players.length
   const canStart = playerCount >= 3 && playerCount <= 8
   const statusMessage = canStart 

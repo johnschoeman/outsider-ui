@@ -18,10 +18,10 @@ import {
   input,
   label 
 } from 'foldkit/html'
-import { GameState, Player } from '../domain'
+import { Game, Player } from '../domain'
 
 export const GameModel = S.Struct({
-  gameState: GameState,
+  gameState: Game.GameState,
   currentPlayerId: S.String,
   secretWordInput: S.String,
   secretWordError: S.Option(S.String),
@@ -29,7 +29,7 @@ export const GameModel = S.Struct({
 
 export type GameModel = S.Schema.Type<typeof GameModel>
 
-const getCurrentPlayer = (gameState: GameState, playerId: string): Player | undefined => {
+const getCurrentPlayer = (gameState: Game.GameState, playerId: string): Player.Player | undefined => {
   return gameState.players.find(p => p.id === playerId)
 }
 
@@ -117,7 +117,7 @@ const getRoleDisplayInfo = (role: 'Master' | 'Outsider' | 'Commoner') => {
   }
 }
 
-const renderRoleAssignment = (currentPlayer: Player): Html => {
+const renderRoleAssignment = (currentPlayer: Player.Player): Html => {
   if (Option.isNone(currentPlayer.role)) {
     return div(
       [Class('text-center')],
@@ -1008,7 +1008,7 @@ const renderResults = <Message>(
   )
 }
 
-const renderGameInfo = (gameState: GameState): Html => {
+const renderGameInfo = (gameState: Game.GameState): Html => {
   const currentPhase = Option.getOrElse(gameState.phase, () => 'Unknown')
   
   return div(

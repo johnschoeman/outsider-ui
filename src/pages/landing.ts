@@ -9,12 +9,14 @@ import {
   div, 
   h1, 
   h2,
+  h3,
   p,
- 
+  span,
   input, 
   button, 
   label 
 } from 'foldkit/html'
+import { Player, Lobby } from "../domain"
 
 export const LandingModel = S.Struct({
   playerName: S.String,
@@ -47,42 +49,18 @@ export const updateJoinLobbyId = (lobbyId: string) => (model: LandingModel): Lan
 })
 
 export const validateName = (model: LandingModel): LandingModel => {
-  const trimmedName = model.playerName.trim()
-  if (trimmedName.length === 0) {
-    return {
-      ...model,
-      nameError: Option.some('Please enter your name'),
-    }
-  }
-  if (trimmedName.length > 20) {
-    return {
-      ...model,
-      nameError: Option.some('Name must be 20 characters or less'),
-    }
-  }
+  const nameError = Player.validateName(model.playerName)
   return {
     ...model,
-    nameError: Option.none(),
+    nameError,
   }
 }
 
 export const validateLobbyId = (model: LandingModel): LandingModel => {
-  const lobbyId = model.joinLobbyId.trim()
-  if (lobbyId.length === 0) {
-    return {
-      ...model,
-      lobbyError: Option.some('Please enter a lobby ID'),
-    }
-  }
-  if (!/^[A-Z]{4}$/.test(lobbyId)) {
-    return {
-      ...model,
-      lobbyError: Option.some('Lobby ID must be 4 uppercase letters (e.g., ABCD)'),
-    }
-  }
+  const lobbyError = Lobby.validateLobbyId(model.joinLobbyId)
   return {
     ...model,
-    lobbyError: Option.none(),
+    lobbyError,
   }
 }
 
@@ -346,6 +324,13 @@ export function view<Message>(
   const nameHasError = Option.isSome(model.nameError)
   const lobbyHasError = Option.isSome(model.lobbyError)
 
+  console.log("view hellasdfsdf")
+
+  const onClickHowToPlay = () => {
+    console.log("OnClick onShowRules")
+    onShowRules()
+  }  
+
   return div(
     [Class('min-h-screen bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center p-4')],
     [
@@ -359,7 +344,7 @@ export function view<Message>(
               h1([Class('text-4xl font-bold text-gray-800 mb-2')], ['Outsider']),
               p([Class('text-gray-600 mb-4')], ['A social deduction game']),
               button([
-                OnClick(() => onShowRules()),
+                OnClick(onClickHowToPlay),
                 Class('text-blue-600 hover:text-blue-800 underline font-medium transition-colors duration-200'),
               ], ['📖 How to Play']),
             ]
