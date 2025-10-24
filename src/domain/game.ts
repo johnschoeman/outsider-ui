@@ -1,4 +1,5 @@
-import { Schema as S, Option } from 'effect'
+import { Option, Schema as S } from 'effect'
+
 import { Player } from './player'
 
 export const GamePhase = S.Literal(
@@ -7,7 +8,7 @@ export const GamePhase = S.Literal(
   'ShareSecretWord',
   'PlayerGuessing',
   'Voting',
-  'Results'
+  'Results',
 )
 export type GamePhase = S.Schema.Type<typeof GamePhase>
 
@@ -42,15 +43,19 @@ export const createGameState = (lobbyId: string): GameState => ({
   winner: Option.none(),
 })
 
-export const addPlayer = (player: Player) => (gameState: GameState): GameState => ({
-  ...gameState,
-  players: [...gameState.players, player],
-})
+export const addPlayer =
+  (player: Player) =>
+  (gameState: GameState): GameState => ({
+    ...gameState,
+    players: [...gameState.players, player],
+  })
 
-export const removePlayer = (playerId: string) => (gameState: GameState): GameState => ({
-  ...gameState,
-  players: gameState.players.filter(p => p.id !== playerId),
-})
+export const removePlayer =
+  (playerId: string) =>
+  (gameState: GameState): GameState => ({
+    ...gameState,
+    players: gameState.players.filter((p) => p.id !== playerId),
+  })
 
 export const startGame = (gameState: GameState): GameState => {
   if (gameState.players.length < 3) {
@@ -60,7 +65,7 @@ export const startGame = (gameState: GameState): GameState => {
   const shuffledPlayers = [...gameState.players].sort(() => Math.random() - 0.5)
   const masterIndex = 0
   const outsiderIndex = 1
-  
+
   const updatedPlayers = shuffledPlayers.map((player, index): Player => {
     if (index === masterIndex) {
       return { ...player, role: Option.some('Master' as const) }
@@ -81,12 +86,14 @@ export const startGame = (gameState: GameState): GameState => {
   }
 }
 
-export const setSecretWord = (word: string) => (gameState: GameState): GameState => ({
-  ...gameState,
-  secretWord: Option.some(word),
-  phase: Option.some('ShareSecretWord'),
-  phaseTimer: Option.some(30), // 30 seconds
-})
+export const setSecretWord =
+  (word: string) =>
+  (gameState: GameState): GameState => ({
+    ...gameState,
+    secretWord: Option.some(word),
+    phase: Option.some('ShareSecretWord'),
+    phaseTimer: Option.some(30), // 30 seconds
+  })
 
 export const startGuessingPhase = (gameState: GameState): GameState => ({
   ...gameState,
@@ -94,29 +101,31 @@ export const startGuessingPhase = (gameState: GameState): GameState => ({
   phaseTimer: Option.some(300), // 5 minutes
 })
 
-export const setWordGuessed = (guessed: boolean) => (gameState: GameState): GameState => ({
-  ...gameState,
-  wordGuessed: Option.some(guessed),
-  phase: Option.some('Voting'),
-  phaseTimer: Option.some(300), // 5 minutes
-})
+export const setWordGuessed =
+  (guessed: boolean) =>
+  (gameState: GameState): GameState => ({
+    ...gameState,
+    wordGuessed: Option.some(guessed),
+    phase: Option.some('Voting'),
+    phaseTimer: Option.some(300), // 5 minutes
+  })
 
 export const calculateResults = (gameState: GameState): GameState => {
-  const outsider = gameState.players.find(p => 
-    Option.isSome(p.role) && p.role.value === 'Outsider'
+  const outsider = gameState.players.find(
+    (p) => Option.isSome(p.role) && p.role.value === 'Outsider',
   )
-  
+
   if (!outsider) {
     return gameState
   }
 
-  const votesForOutsider = gameState.players.filter(p =>
-    Option.isSome(p.vote) && p.vote.value === outsider.id
+  const votesForOutsider = gameState.players.filter(
+    (p) => Option.isSome(p.vote) && p.vote.value === outsider.id,
   ).length
 
   const totalVoters = gameState.players.length
   const majorityVotes = Math.floor(totalVoters / 2) + 1
-  
+
   const winner = votesForOutsider >= majorityVotes ? 'TeamWins' : 'OutsiderWins'
 
   return {
@@ -137,7 +146,7 @@ export const resetToLobby = (gameState: GameState): GameState => ({
   masterId: Option.none(),
   outsiderId: Option.none(),
   winner: Option.none(),
-  players: gameState.players.map(player => ({
+  players: gameState.players.map((player) => ({
     ...player,
     role: Option.none(),
     vote: Option.none(),

@@ -1,7 +1,9 @@
-import { Match as M, Schema as S, Option } from 'effect'
+import { Match as M, Option, Schema as S } from 'effect'
+import { Runtime } from 'foldkit'
 import { ST, ts } from 'foldkit/schema'
+
 import { Lobby } from './domain'
-import { Landing, Lobby as LobbyPage, Game } from './pages'
+import { Game, Landing, Lobby as LobbyPage } from './pages'
 
 // APP STATE
 export const AppState = S.Literal('Landing', 'Lobby', 'Game')
@@ -82,18 +84,21 @@ type CloseRules = ST<typeof CloseRules>
 export type Message = ST<typeof Message>
 
 // INIT
-export const init = (): AppModel => ({
-  currentState: 'Landing',
-  currentPlayerId: Option.none(),
-  currentPlayerName: loadPlayerName(),
-  currentLobbyId: Option.none(),
-  landingPage: {
-    ...Landing.init(),
-    playerName: loadPlayerName(),
+export const init = (): [AppModel, Runtime.Command<Message>[]] => [
+  {
+    currentState: 'Landing',
+    currentPlayerId: Option.none(),
+    currentPlayerName: loadPlayerName(),
+    currentLobbyId: Option.none(),
+    landingPage: {
+      ...Landing.init(),
+      playerName: loadPlayerName(),
+    },
+    lobbyPage: Option.none(),
+    gamePage: Option.none(),
   },
-  lobbyPage: Option.none(),
-  gamePage: Option.none(),
-})
+  [],
+]
 
 // LOCAL STORAGE HELPERS
 const PLAYER_NAME_KEY = 'outsider-player-name'
@@ -115,86 +120,116 @@ const savePlayerName = (name: string): void => {
 }
 
 // UPDATE
-export const update = (model: AppModel, message: Message): AppModel => {
-  return M.value(message).pipe(
-    M.withReturnType<AppModel>(),
+export const update = (
+  model: AppModel,
+  message: Message,
+): [AppModel, Runtime.Command<Message>[]] => {
+  console.log('update ran', message)
+  const returnValue = M.value(message).pipe(
+    M.withReturnType<[AppModel, Runtime.Command<Message>[]]>(),
     M.tagsExhaustive({
-      NoOp: () => model,
+      NoOp: () => [model, []],
 
       PlayerNameChanged: ({ name }) => {
         savePlayerName(name)
-        return {
-          ...model,
-          currentPlayerName: name,
-          landingPage: Landing.updatePlayerName(name)(model.landingPage),
-        }
+        return [
+          {
+            ...model,
+            currentPlayerName: name,
+            landingPage: Landing.updatePlayerName(name)(model.landingPage),
+          },
+          [],
+        ]
       },
 
-      JoinLobbyIdChanged: ({ lobbyId }) => ({
-        ...model,
-        landingPage: Landing.updateJoinLobbyId(lobbyId)(model.landingPage),
-      }),
+      JoinLobbyIdChanged: ({ lobbyId }) => [
+        {
+          ...model,
+          landingPage: Landing.updateJoinLobbyId(lobbyId)(model.landingPage),
+        },
+        [],
+      ],
 
       CreateLobbyClicked: () => {
         const validatedLanding = Landing.validateName(model.landingPage)
         if (Option.isSome(validatedLanding.nameError)) {
-          return {
-            ...model,
-            landingPage: validatedLanding,
-          }
+          return [
+            {
+              ...model,
+              landingPage: validatedLanding,
+            },
+            [],
+          ]
         }
 
         const lobbyId = Lobby.generateLobbyId()
         const playerId = crypto.randomUUID()
         const lobbyModel = LobbyPage.init(lobbyId, playerId, model.currentPlayerName)
 
-        return {
-          ...model,
-          currentState: 'Lobby',
-          currentPlayerId: Option.some(playerId),
-          currentLobbyId: Option.some(lobbyId),
-          landingPage: validatedLanding,
-          lobbyPage: Option.some(lobbyModel),
-        }
+        return [
+          {
+            ...model,
+            currentState: 'Lobby',
+            currentPlayerId: Option.some(playerId),
+            currentLobbyId: Option.some(lobbyId),
+            landingPage: validatedLanding,
+            lobbyPage: Option.some(lobbyModel),
+          },
+          [],
+        ]
       },
 
       JoinLobbyClicked: () => {
-        const validatedLanding = Landing.validateLobbyId(
-          Landing.validateName(model.landingPage)
-        )
-        
-        if (Option.isSome(validatedLanding.nameError) || Option.isSome(validatedLanding.lobbyError)) {
-          return {
-            ...model,
-            landingPage: validatedLanding,
-          }
+        const validatedLanding = Landing.validateLobbyId(Landing.validateName(model.landingPage))
+
+        if (
+          Option.isSome(validatedLanding.nameError) ||
+          Option.isSome(validatedLanding.lobbyError)
+        ) {
+          return [
+            {
+              ...model,
+              landingPage: validatedLanding,
+            },
+            [],
+          ]
         }
 
         const playerId = crypto.randomUUID()
-        const lobbyModel = LobbyPage.init(validatedLanding.joinLobbyId, playerId, model.currentPlayerName)
+        const lobbyModel = LobbyPage.init(
+          validatedLanding.joinLobbyId,
+          playerId,
+          model.currentPlayerName,
+        )
 
-        return {
-          ...model,
-          currentState: 'Lobby',
-          currentPlayerId: Option.some(playerId),
-          currentLobbyId: Option.some(validatedLanding.joinLobbyId),
-          landingPage: validatedLanding,
-          lobbyPage: Option.some(lobbyModel),
-        }
+        return [
+          {
+            ...model,
+            currentState: 'Lobby',
+            currentPlayerId: Option.some(playerId),
+            currentLobbyId: Option.some(validatedLanding.joinLobbyId),
+            landingPage: validatedLanding,
+            lobbyPage: Option.some(lobbyModel),
+          },
+          [],
+        ]
       },
 
-      LeaveLobbyClicked: () => ({
-        ...model,
-        currentState: 'Landing',
-        currentPlayerId: Option.none(),
-        currentLobbyId: Option.none(),
-        lobbyPage: Option.none(),
-        gamePage: Option.none(),
-      }),
+      LeaveLobbyClicked: () => [
+        {
+          ...model,
+          currentState: 'Landing',
+          currentPlayerId: Option.none(),
+          currentLobbyId: Option.none(),
+          lobbyPage: Option.none(),
+          gamePage: Option.none(),
+        },
+        [],
+      ],
 
       StartGameClicked: () => {
         if (Option.isNone(model.lobbyPage) || Option.isNone(model.currentPlayerId)) {
-          return model
+          return [model, []]
         }
 
         const updatedLobby = LobbyPage.startGame(model.lobbyPage.value)
@@ -204,18 +239,21 @@ export const update = (model: AppModel, message: Message): AppModel => {
           secretWordInput: '',
           secretWordError: Option.none(),
         }
-        
-        return {
-          ...model,
-          currentState: 'Game',
-          lobbyPage: Option.some(updatedLobby),
-          gamePage: Option.some(gameModel),
-        }
+
+        return [
+          {
+            ...model,
+            currentState: 'Game',
+            lobbyPage: Option.some(updatedLobby),
+            gamePage: Option.some(gameModel),
+          },
+          [],
+        ]
       },
 
       ContinueToWordCreation: () => {
         if (Option.isNone(model.gamePage)) {
-          return model
+          return [model, []]
         }
 
         const updatedGameState = {
@@ -227,38 +265,47 @@ export const update = (model: AppModel, message: Message): AppModel => {
           ...model.gamePage.value,
           gameState: updatedGameState,
         }
-        
-        return {
-          ...model,
-          gamePage: Option.some(updatedGameModel),
-        }
+
+        return [
+          {
+            ...model,
+            gamePage: Option.some(updatedGameModel),
+          },
+          [],
+        ]
       },
 
       SecretWordChanged: ({ word }) => {
         if (Option.isNone(model.gamePage)) {
-          return model
+          return [model, []]
         }
 
         const updatedGameModel = Game.updateSecretWordInput(word)(model.gamePage.value)
-        
-        return {
-          ...model,
-          gamePage: Option.some(updatedGameModel),
-        }
+
+        return [
+          {
+            ...model,
+            gamePage: Option.some(updatedGameModel),
+          },
+          [],
+        ]
       },
 
       SubmitSecretWord: () => {
         if (Option.isNone(model.gamePage)) {
-          return model
+          return [model, []]
         }
 
         const validatedGameModel = Game.validateSecretWord(model.gamePage.value)
-        
+
         if (Option.isSome(validatedGameModel.secretWordError)) {
-          return {
-            ...model,
-            gamePage: Option.some(validatedGameModel),
-          }
+          return [
+            {
+              ...model,
+              gamePage: Option.some(validatedGameModel),
+            },
+            [],
+          ]
         }
 
         const secretWord = validatedGameModel.secretWordInput.trim()
@@ -273,16 +320,19 @@ export const update = (model: AppModel, message: Message): AppModel => {
           ...validatedGameModel,
           gameState: updatedGameState,
         }
-        
-        return {
-          ...model,
-          gamePage: Option.some(updatedGameModel),
-        }
+
+        return [
+          {
+            ...model,
+            gamePage: Option.some(updatedGameModel),
+          },
+          [],
+        ]
       },
 
       ContinueToGuessing: () => {
         if (Option.isNone(model.gamePage)) {
-          return model
+          return [model, []]
         }
 
         const updatedGameState = {
@@ -295,22 +345,25 @@ export const update = (model: AppModel, message: Message): AppModel => {
           ...model.gamePage.value,
           gameState: updatedGameState,
         }
-        
-        return {
-          ...model,
-          gamePage: Option.some(updatedGameModel),
-        }
+
+        return [
+          {
+            ...model,
+            gamePage: Option.some(updatedGameModel),
+          },
+          [],
+        ]
       },
 
       TimerTick: () => {
         if (Option.isNone(model.gamePage)) {
-          return model
+          return [model, []]
         }
 
         const currentTimer = Option.getOrElse(model.gamePage.value.gameState.phaseTimer, () => 0)
-        
+
         if (currentTimer <= 0) {
-          return model // Timer already finished
+          return [model, []] // Timer already finished
         }
 
         const newTimer = currentTimer - 1
@@ -323,16 +376,19 @@ export const update = (model: AppModel, message: Message): AppModel => {
           ...model.gamePage.value,
           gameState: updatedGameState,
         }
-        
-        return {
-          ...model,
-          gamePage: Option.some(updatedGameModel),
-        }
+
+        return [
+          {
+            ...model,
+            gamePage: Option.some(updatedGameModel),
+          },
+          [],
+        ]
       },
 
       WordGuessed: () => {
         if (Option.isNone(model.gamePage)) {
-          return model
+          return [model, []]
         }
 
         const updatedGameState = {
@@ -346,16 +402,19 @@ export const update = (model: AppModel, message: Message): AppModel => {
           ...model.gamePage.value,
           gameState: updatedGameState,
         }
-        
-        return {
-          ...model,
-          gamePage: Option.some(updatedGameModel),
-        }
+
+        return [
+          {
+            ...model,
+            gamePage: Option.some(updatedGameModel),
+          },
+          [],
+        ]
       },
 
       WordNotGuessed: () => {
         if (Option.isNone(model.gamePage)) {
-          return model
+          return [model, []]
         }
 
         const updatedGameState = {
@@ -369,20 +428,23 @@ export const update = (model: AppModel, message: Message): AppModel => {
           ...model.gamePage.value,
           gameState: updatedGameState,
         }
-        
-        return {
-          ...model,
-          gamePage: Option.some(updatedGameModel),
-        }
+
+        return [
+          {
+            ...model,
+            gamePage: Option.some(updatedGameModel),
+          },
+          [],
+        ]
       },
 
       VoteForPlayer: ({ playerId }) => {
         if (Option.isNone(model.gamePage) || Option.isNone(model.currentPlayerId)) {
-          return model
+          return [model, []]
         }
 
         const currentPlayerId = model.currentPlayerId.value
-        const updatedPlayers = [...model.gamePage.value.gameState.players].map(player => {
+        const updatedPlayers = [...model.gamePage.value.gameState.players].map((player) => {
           if (player.id === currentPlayerId) {
             return {
               ...player,
@@ -394,102 +456,102 @@ export const update = (model: AppModel, message: Message): AppModel => {
         })
 
         // Check if all players have voted
-        const allVoted = updatedPlayers.every(player => player.hasVoted)
-        
+        const allVoted = updatedPlayers.every((player) => player.hasVoted)
+
         const updatedGameState = {
           ...model.gamePage.value.gameState,
           players: updatedPlayers,
-          ...(allVoted ? {
-            phase: Option.some('Results' as const),
-            phaseTimer: Option.none(),
-          } : {}),
+          ...(allVoted
+            ? {
+                phase: Option.some('Results' as const),
+                phaseTimer: Option.none(),
+              }
+            : {}),
         }
 
         const updatedGameModel = {
           ...model.gamePage.value,
           gameState: updatedGameState,
         }
-        
-        return {
-          ...model,
-          gamePage: Option.some(updatedGameModel),
-        }
+
+        return [
+          {
+            ...model,
+            gamePage: Option.some(updatedGameModel),
+          },
+          [],
+        ]
       },
 
-      NewGame: () => ({
-        ...model,
-        currentState: 'Landing',
-        currentPlayerId: Option.none(),
-        currentLobbyId: Option.none(),
-        landingPage: {
-          ...Landing.init(),
-          playerName: model.currentPlayerName,
+      NewGame: () => [
+        {
+          ...model,
+          currentState: 'Landing',
+          currentPlayerId: Option.none(),
+          currentLobbyId: Option.none(),
+          landingPage: {
+            ...Landing.init(),
+            playerName: model.currentPlayerName,
+          },
+          lobbyPage: Option.none(),
+          gamePage: Option.none(),
         },
-        lobbyPage: Option.none(),
-        gamePage: Option.none(),
-      }),
+        [],
+      ],
 
       ShowRules: () => {
-        console.log("HELLO ShowRules")
-        return ({
-        ...model,
-        landingPage: Landing.toggleRulesModal(model.landingPage),
-      })
+        console.log('HELLO ShowRules')
+        return [
+          {
+            ...model,
+            landingPage: Landing.toggleRulesModal(model.landingPage),
+          },
+          [],
+        ]
       },
 
-      CloseRules: () => ({
-        ...model,
-        landingPage: Landing.toggleRulesModal(model.landingPage),
-      }),
+      CloseRules: () => [
+        {
+          ...model,
+          landingPage: Landing.toggleRulesModal(model.landingPage),
+        },
+        [],
+      ],
     }),
   )
+  console.log('returnValue', { returnValue })
+  return returnValue
 }
 
 // MESSAGE CREATORS
-export const playerNameChanged = (name: string): Message => 
-  PlayerNameChanged.make({ name })
+export const playerNameChanged = (name: string): Message => PlayerNameChanged.make({ name })
 
-export const joinLobbyIdChanged = (lobbyId: string): Message => 
-  JoinLobbyIdChanged.make({ lobbyId })
+export const joinLobbyIdChanged = (lobbyId: string): Message => JoinLobbyIdChanged.make({ lobbyId })
 
-export const createLobbyClicked = (): Message => 
-  CreateLobbyClicked.make()
+export const createLobbyClicked = (): Message => CreateLobbyClicked.make()
 
-export const joinLobbyClicked = (): Message => 
-  JoinLobbyClicked.make()
+export const joinLobbyClicked = (): Message => JoinLobbyClicked.make()
 
-export const leaveLobbyClicked = (): Message => 
-  LeaveLobbyClicked.make()
+export const leaveLobbyClicked = (): Message => LeaveLobbyClicked.make()
 
-export const startGameClicked = (): Message => 
-  StartGameClicked.make()
+export const startGameClicked = (): Message => StartGameClicked.make()
 
-export const continueToWordCreation = (): Message => 
-  ContinueToWordCreation.make()
+export const continueToWordCreation = (): Message => ContinueToWordCreation.make()
 
-export const secretWordChanged = (word: string): Message => 
-  SecretWordChanged.make({ word })
+export const secretWordChanged = (word: string): Message => SecretWordChanged.make({ word })
 
-export const submitSecretWord = (): Message => 
-  SubmitSecretWord.make()
+export const submitSecretWord = (): Message => SubmitSecretWord.make()
 
-export const continueToGuessing = (): Message => 
-  ContinueToGuessing.make()
+export const continueToGuessing = (): Message => ContinueToGuessing.make()
 
-export const wordGuessed = (): Message => 
-  WordGuessed.make()
+export const wordGuessed = (): Message => WordGuessed.make()
 
-export const wordNotGuessed = (): Message => 
-  WordNotGuessed.make()
+export const wordNotGuessed = (): Message => WordNotGuessed.make()
 
-export const voteForPlayer = (playerId: string): Message => 
-  VoteForPlayer.make({ playerId })
+export const voteForPlayer = (playerId: string): Message => VoteForPlayer.make({ playerId })
 
-export const newGame = (): Message => 
-  NewGame.make()
+export const newGame = (): Message => NewGame.make()
 
-export const showRules = (): Message => 
-  ShowRules.make()
+export const showRules = (): Message => ShowRules.make()
 
-export const closeRules = (): Message => 
-  CloseRules.make()
+export const closeRules = (): Message => CloseRules.make()

@@ -1,4 +1,4 @@
-import { Schema as S, Option } from 'effect'
+import { Option, Schema as S } from 'effect'
 
 export const Timer = S.Struct({
   remaining: S.Number, // seconds

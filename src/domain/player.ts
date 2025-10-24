@@ -1,4 +1,4 @@
-import { Schema as S, Option } from 'effect'
+import { Option, Schema as S } from 'effect'
 
 export const PlayerRole = S.Literal('Master', 'Outsider', 'Commoner')
 export type PlayerRole = S.Schema.Type<typeof PlayerRole>
@@ -21,16 +21,20 @@ export const createPlayer = (id: string, name: string): Player => ({
   hasVoted: false,
 })
 
-export const assignRole = (role: PlayerRole) => (player: Player): Player => ({
-  ...player,
-  role: Option.some(role),
-})
+export const assignRole =
+  (role: PlayerRole) =>
+  (player: Player): Player => ({
+    ...player,
+    role: Option.some(role),
+  })
 
-export const castVote = (targetPlayerId: string) => (player: Player): Player => ({
-  ...player,
-  vote: Option.some(targetPlayerId),
-  hasVoted: true,
-})
+export const castVote =
+  (targetPlayerId: string) =>
+  (player: Player): Player => ({
+    ...player,
+    vote: Option.some(targetPlayerId),
+    hasVoted: true,
+  })
 
 export const clearVote = (player: Player): Player => ({
   ...player,
@@ -40,14 +44,14 @@ export const clearVote = (player: Player): Player => ({
 
 export const validateName = (name: string): Option.Option<string> => {
   const trimmedName = name.trim()
-  
+
   if (trimmedName.length === 0) {
     return Option.some('Please enter your name')
   }
-  
+
   if (trimmedName.length > 20) {
     return Option.some('Name must be 20 characters or less')
   }
-  
+
   return Option.none()
 }

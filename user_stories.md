@@ -37,23 +37,26 @@
 ## GameInProgress
 
 1. A started Game has 6 phases
-  - Role Assignment
-  - Secret Word Creation
-  - Share Secret word with Outsider
-  - Player Guessing Phase
-  - Vote for Outsider
-  - Share Results
+
+- Role Assignment
+- Secret Word Creation
+- Share Secret word with Outsider
+- Player Guessing Phase
+- Vote for Outsider
+- Share Results
 
 ### Phase 1: Role Assignment
 
 1. When the game startes everyone in the lobby is randomly assigned a role
-  - 1 person is the Master
-  - 1 person is the Outsider
-  - everyone else is a Commoner
+
+- 1 person is the Master
+- 1 person is the Outsider
+- everyone else is a Commoner
 
 2. Show this role to the user
-  - show a note to the master that they should share their role and select a secret word.
-  - show a note to commoners and the outsider that they should keep their role a secret.
+
+- show a note to the master that they should share their role and select a secret word.
+- show a note to commoners and the outsider that they should keep their role a secret.
 
 ### Phase 2: Word Creation
 
@@ -88,7 +91,6 @@
 3. Share these results to all players.
 4. After 60 seconds place the overall Game state back to GamePending.
 
-
 ## User Story Todo
 
 - Show game rules and player instructions.
@@ -96,5 +98,5 @@
 # Technical Requirements
 
 Frontend: Web based ui using formkit and tailwindcss.
-Backend: Rust based web server. 
+Backend: Rust based web server.
 Data Layer: Restful HTTP endpoints for game creation, websockets for gameplay

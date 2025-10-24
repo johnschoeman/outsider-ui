@@ -1,18 +1,6 @@
-import { Schema as S, Option } from 'effect'
-import { 
-  Class, 
-  Html, 
-  OnClick,
-  div, 
-  h1, 
-  h2,
-  h3,
-  p,
-  button, 
-  ul,
-  li,
-  span 
-} from 'foldkit/html'
+import { Option, Schema as S } from 'effect'
+import { Class, Html, OnClick, button, div, h1, h2, h3, li, p, span, ul } from 'foldkit/html'
+
 import { Game, Player } from '../domain'
 
 export const LobbyModel = S.Struct({
@@ -25,13 +13,15 @@ export type LobbyModel = S.Schema.Type<typeof LobbyModel>
 export const init = (lobbyId: string, playerId: string, playerName: string): LobbyModel => ({
   gameState: {
     lobbyId,
-    players: [{
-      id: playerId,
-      name: playerName,
-      role: Option.none(),
-      vote: Option.none(),
-      hasVoted: false,
-    }],
+    players: [
+      {
+        id: playerId,
+        name: playerName,
+        role: Option.none(),
+        vote: Option.none(),
+        hasVoted: false,
+      },
+    ],
     status: 'Pending',
     phase: Option.none(),
     secretWord: Option.none(),
@@ -44,21 +34,25 @@ export const init = (lobbyId: string, playerId: string, playerName: string): Lob
   currentPlayerId: playerId,
 })
 
-export const addPlayer = (player: Player.Player) => (model: LobbyModel): LobbyModel => ({
-  ...model,
-  gameState: {
-    ...model.gameState,
-    players: [...model.gameState.players, player],
-  },
-})
+export const addPlayer =
+  (player: Player.Player) =>
+  (model: LobbyModel): LobbyModel => ({
+    ...model,
+    gameState: {
+      ...model.gameState,
+      players: [...model.gameState.players, player],
+    },
+  })
 
-export const removePlayer = (playerId: string) => (model: LobbyModel): LobbyModel => ({
-  ...model,
-  gameState: {
-    ...model.gameState,
-    players: model.gameState.players.filter(p => p.id !== playerId),
-  },
-})
+export const removePlayer =
+  (playerId: string) =>
+  (model: LobbyModel): LobbyModel => ({
+    ...model,
+    gameState: {
+      ...model.gameState,
+      players: model.gameState.players.filter((p) => p.id !== playerId),
+    },
+  })
 
 export const startGame = (model: LobbyModel): LobbyModel => {
   if (model.gameState.players.length < 3) {
@@ -68,7 +62,7 @@ export const startGame = (model: LobbyModel): LobbyModel => {
   const shuffledPlayers = [...model.gameState.players].sort(() => Math.random() - 0.5)
   const masterIndex = 0
   const outsiderIndex = 1
-  
+
   const updatedPlayers = shuffledPlayers.map((player, index) => {
     if (index === masterIndex) {
       return { ...player, role: Option.some('Master' as const) }
@@ -93,8 +87,8 @@ export const startGame = (model: LobbyModel): LobbyModel => {
 }
 
 const renderPlayerList = (players: readonly Player.Player[], currentPlayerId: string): Html => {
-  const currentPlayer = players.find(p => p.id === currentPlayerId)
-  const otherPlayers = players.filter(p => p.id !== currentPlayerId)
+  const currentPlayer = players.find((p) => p.id === currentPlayerId)
+  const otherPlayers = players.filter((p) => p.id !== currentPlayerId)
 
   return div(
     [Class('space-y-4')],
@@ -109,47 +103,49 @@ const renderPlayerList = (players: readonly Player.Player[], currentPlayerId: st
             [
               span([Class('text-blue-700 font-medium')], [currentPlayer?.name || 'Unknown']),
               span([Class('text-blue-600 text-sm')], ['(Host)']),
-            ]
+            ],
           ),
-        ]
+        ],
       ),
 
       // Other players section
-      ...(otherPlayers.length > 0 ? [
-        div(
-          [],
-          [
-            h3([Class('text-lg font-semibold text-gray-800 mb-2')], ['Other Players']),
-            ul(
-              [Class('space-y-2')],
-              [...otherPlayers].map(player => 
-                li(
-                  [Class('bg-gray-50 rounded-lg p-3 border border-gray-200')],
-                  [
-                    div(
-                      [Class('flex items-center justify-between')],
+      ...(otherPlayers.length > 0
+        ? [
+            div(
+              [],
+              [
+                h3([Class('text-lg font-semibold text-gray-800 mb-2')], ['Other Players']),
+                ul(
+                  [Class('space-y-2')],
+                  [...otherPlayers].map((player) =>
+                    li(
+                      [Class('bg-gray-50 rounded-lg p-3 border border-gray-200')],
                       [
-                        span([Class('text-gray-700 font-medium')], [player.name]),
-                        span([Class('text-gray-500 text-sm')], ['Player']),
-                      ]
+                        div(
+                          [Class('flex items-center justify-between')],
+                          [
+                            span([Class('text-gray-700 font-medium')], [player.name]),
+                            span([Class('text-gray-500 text-sm')], ['Player']),
+                          ],
+                        ),
+                      ],
                     ),
-                  ]
-                )
-              )
+                  ),
+                ),
+              ],
             ),
           ]
-        )
-      ] : []),
-    ]
+        : []),
+    ],
   )
 }
 
 const renderGameInfo = (gameState: Game.GameState): Html => {
   const playerCount = gameState.players.length
   const canStart = playerCount >= 3 && playerCount <= 8
-  const statusMessage = canStart 
-    ? 'Ready to start!' 
-    : playerCount < 3 
+  const statusMessage = canStart
+    ? 'Ready to start!'
+    : playerCount < 3
       ? `Need ${3 - playerCount} more player${3 - playerCount === 1 ? '' : 's'} (minimum 3)`
       : 'Too many players (maximum 8)'
 
@@ -161,14 +157,16 @@ const renderGameInfo = (gameState: Game.GameState): Html => {
         [
           h3([Class('text-lg font-semibold text-gray-800')], ['Game Status']),
           span(
-            [Class(`px-3 py-1 rounded-full text-sm font-medium ${
-              canStart 
-                ? 'bg-green-100 text-green-800' 
-                : 'bg-yellow-100 text-yellow-800'
-            }`)], 
-            [gameState.status]
+            [
+              Class(
+                `px-3 py-1 rounded-full text-sm font-medium ${
+                  canStart ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                }`,
+              ),
+            ],
+            [gameState.status],
           ),
-        ]
+        ],
       ),
       div(
         [Class('space-y-2')],
@@ -178,12 +176,12 @@ const renderGameInfo = (gameState: Game.GameState): Html => {
             [
               span([Class('text-gray-600')], ['Players:']),
               span([Class('font-medium')], [`${playerCount}/8`]),
-            ]
+            ],
           ),
           p([Class('text-sm text-gray-600')], [statusMessage]),
-        ]
+        ],
       ),
-    ]
+    ],
   )
 }
 
@@ -192,9 +190,10 @@ export function view<Message>(
   onStartGame: () => Message,
   onLeaveLobby: () => Message,
 ): Html {
-  const canStartGame = model.gameState.players.length >= 3 && 
-                      model.gameState.players.length <= 8 && 
-                      model.gameState.status === 'Pending'
+  const canStartGame =
+    model.gameState.players.length >= 3 &&
+    model.gameState.players.length <= 8 &&
+    model.gameState.status === 'Pending'
 
   return div(
     [Class('min-h-screen bg-gradient-to-br from-purple-900 to-blue-900 p-4')],
@@ -214,17 +213,22 @@ export function view<Message>(
                     [Class('flex items-center justify-center space-x-4')],
                     [
                       span([Class('text-gray-600')], ['Lobby ID:']),
-                      span([Class('text-2xl font-mono font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded')], 
-                        [model.gameState.lobbyId]
+                      span(
+                        [
+                          Class(
+                            'text-2xl font-mono font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded',
+                          ),
+                        ],
+                        [model.gameState.lobbyId],
                       ),
-                    ]
+                    ],
                   ),
-                ]
+                ],
               ),
 
               // Game Info
               renderGameInfo(model.gameState),
-            ]
+            ],
           ),
 
           // Players Section
@@ -233,7 +237,7 @@ export function view<Message>(
             [
               h2([Class('text-2xl font-bold text-gray-800 mb-4')], ['Players']),
               renderPlayerList(model.gameState.players, model.currentPlayerId),
-            ]
+            ],
           ),
 
           // Actions Section
@@ -243,20 +247,30 @@ export function view<Message>(
               div(
                 [Class('flex flex-col sm:flex-row gap-4')],
                 [
-                  button([
-                    OnClick(() => onStartGame()),
-                    Class(`flex-1 py-3 px-6 rounded-md font-medium transition-colors duration-200 ${
-                      canStartGame
-                        ? 'bg-green-600 hover:bg-green-700 text-white'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`),
-                  ], ['Start Game']),
-                  
-                  button([
-                    OnClick(() => onLeaveLobby()),
-                    Class('flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-md font-medium transition-colors duration-200'),
-                  ], ['Leave Lobby']),
-                ]
+                  button(
+                    [
+                      OnClick(() => onStartGame()),
+                      Class(
+                        `flex-1 py-3 px-6 rounded-md font-medium transition-colors duration-200 ${
+                          canStartGame
+                            ? 'bg-green-600 hover:bg-green-700 text-white'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`,
+                      ),
+                    ],
+                    ['Start Game'],
+                  ),
+
+                  button(
+                    [
+                      OnClick(() => onLeaveLobby()),
+                      Class(
+                        'flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-md font-medium transition-colors duration-200',
+                      ),
+                    ],
+                    ['Leave Lobby'],
+                  ),
+                ],
               ),
 
               // Game Rules Summary
@@ -268,17 +282,22 @@ export function view<Message>(
                     [Class('text-sm text-gray-600 space-y-2')],
                     [
                       p([], ['• 3-8 players: 1 Master, 1 Outsider, rest are Commoners']),
-                      p([], ['• Master creates a secret word and shares it with everyone except the Outsider']),
+                      p(
+                        [],
+                        [
+                          '• Master creates a secret word and shares it with everyone except the Outsider',
+                        ],
+                      ),
                       p([], ['• Players discuss and try to identify the Outsider']),
                       p([], ['• Vote to eliminate the Outsider to win!']),
-                    ]
+                    ],
                   ),
-                ]
+                ],
               ),
-            ]
+            ],
           ),
-        ]
-      )
-    ]
+        ],
+      ),
+    ],
   )
 }
