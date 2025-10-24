@@ -1,15 +1,4 @@
-import {
-  Class,
-  Html,
-  OnClick,
-  button,
-  div,
-  h1,
-  h2,
-  h3,
-  p,
-  span,
-} from "foldkit/html"
+import { Class, Html, OnClick, button, div, h1, h2, h3, p, span } from "foldkit/html"
 
 export const renderRulesModal = <Message>(onCloseRules: () => Message): Html => {
   return div(
@@ -21,7 +10,7 @@ export const renderRulesModal = <Message>(onCloseRules: () => Message): Html => 
           // Close button
           button(
             [
-              OnClick(() => onCloseRules()),
+              OnClick(onCloseRules()),
               Class("absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold"),
             ],
             ["×"],
@@ -79,7 +68,7 @@ export const renderRulesModal = <Message>(onCloseRules: () => Message): Html => 
                       ),
                     ],
                   ),
-                  // Commoner
+                  // Commoners
                   div(
                     [Class("bg-blue-50 border-2 border-blue-300 rounded-lg p-4")],
                     [
@@ -145,7 +134,7 @@ export const renderRulesModal = <Message>(onCloseRules: () => Message): Html => 
                       p(
                         [Class("text-blue-700")],
                         [
-                          "The Outsider see the secret word. The Commoners see \"Waiting for others...\"",
+                          'The Outsider see the secret word. The Commoners see "Waiting for others..."',
                         ],
                       ),
                     ],
@@ -172,12 +161,12 @@ export const renderRulesModal = <Message>(onCloseRules: () => Message): Html => 
                     [
                       h3(
                         [Class("font-bold text-red-800 text-lg")],
-                        ["Phase 5: Voting (5 minutes)"],
+                        ["Phase 5: Discussion & Voting (5 minutes)"],
                       ),
                       p(
                         [Class("text-red-700")],
                         [
-                          "Everyone votes for who they think is the Outsider. You cannot vote for yourself.",
+                          "Argue for who you think the outsider is. Everyone votes for who they think is the Outsider.",
                         ],
                       ),
                     ],
@@ -206,43 +195,36 @@ export const renderRulesModal = <Message>(onCloseRules: () => Message): Html => 
             [
               h2([Class("text-2xl font-bold text-purple-800 mb-4")], ["💡 Strategy Tips"]),
               div(
-                [Class("grid md:grid-cols-2 gap-6")],
+                [Class("grid md:grid-cols-3 gap-6")],
                 [
                   // For Commoners
                   div(
-                    [Class("bg-green-50 border border-green-200 rounded-lg p-4")],
+                    [Class("bg-blue-50 border border-blue-200 rounded-lg p-4")],
                     [
-                      h3([Class("text-lg font-bold text-green-800 mb-3")], ["For Commoners"]),
+                      h3([Class("text-lg font-bold text-blue-800 mb-3")], ["For Commoners"]),
                       div(
-                        [Class("space-y-2 text-green-700")],
+                        [Class("space-y-2 text-blue-700")],
                         [
                           p(
                             [Class("flex items-start")],
+                            [span([Class("mr-2 mt-1")], ["• Ask questions quickly"])],
+                          ),
+                          p(
+                            [Class("flex items-start")],
                             [
-                              span([Class("mr-2 mt-1")], ["•"]),
                               span(
-                                [],
-                                [
-                                  "Do your best to ask questions quickly, the more questions asked the more information you have",
-                                ],
+                                [Class("mr-2 mt-1")],
+                                ["• Watch for players who give leading questions"],
                               ),
                             ],
                           ),
                           p(
                             [Class("flex items-start")],
                             [
-                              span([Class("mr-2 mt-1")], ["•"]),
                               span(
-                                [],
-                                ["Watch for players who give very direct or leading questions"],
+                                [Class("mr-2 mt-1")],
+                                ["• Accuse others in the voting phase to get more information"],
                               ),
-                            ],
-                          ),
-                          p(
-                            [Class("flex items-start")],
-                            [
-                              span([Class("mr-2 mt-1")], ["•"]),
-                              span([], ["Pay attention to who avoids giving direct descriptions"]),
                             ],
                           ),
                         ],
@@ -261,11 +243,10 @@ export const renderRulesModal = <Message>(onCloseRules: () => Message): Html => 
                           p(
                             [Class("flex items-start")],
                             [
-                              span([Class("mr-2 mt-1")], ["•"]),
                               span(
-                                [],
+                                [Class("mr-2 mt-1")],
                                 [
-                                  "Ask questions that lead the group to the answer within the time without being to obvious",
+                                  "• Ask questions that lead the group to the answer within the time without being to obvious",
                                 ],
                               ),
                             ],
@@ -273,15 +254,19 @@ export const renderRulesModal = <Message>(onCloseRules: () => Message): Html => 
                           p(
                             [Class("flex items-start")],
                             [
-                              span([Class("mr-2 mt-1")], ["•"]),
-                              span([], ["Agree with others and build on their questions"]),
+                              span(
+                                [Class("mr-2 mt-1")],
+                                ["• Agree with others and build on their questions"],
+                              ),
                             ],
                           ),
                           p(
                             [Class("flex items-start")],
                             [
-                              span([Class("mr-2 mt-1")], ["•"]),
-                              span([], ["Try to deflect suspicion onto other players"]),
+                              span(
+                                [Class("mr-2 mt-1")],
+                                ["• Try to deflect suspicion onto other players"],
+                              ),
                             ],
                           ),
                         ],
@@ -291,20 +276,19 @@ export const renderRulesModal = <Message>(onCloseRules: () => Message): Html => 
 
                   // For Master
                   div(
-                    [Class("bg-red-50 border border-red-200 rounded-lg p-4")],
+                    [Class("bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4")],
                     [
-                      h3([Class("text-lg font-bold text-red-800 mb-3")], ["For the Outsider:"]),
+                      h3([Class("text-lg font-bold text-yellow-800 mb-3")], ["For the Master:"]),
                       div(
-                        [Class("space-y-2 text-red-700")],
+                        [Class("space-y-2 text-yellow-700")],
                         [
                           p(
                             [Class("flex items-start")],
                             [
-                              span([Class("mr-2 mt-1")], ["•"]),
                               span(
-                                [],
+                                [Class("mr-2 mt-1")],
                                 [
-                                  "Answer questions quickly, the more questions asked, the more information you have",
+                                  "• Answer questions quickly, the more questions asked, the more information you have",
                                 ],
                               ),
                             ],
@@ -312,11 +296,10 @@ export const renderRulesModal = <Message>(onCloseRules: () => Message): Html => 
                           p(
                             [Class("flex items-start")],
                             [
-                              span([Class("mr-2 mt-1")], ["•"]),
                               span(
-                                [],
+                                [Class("mr-2 mt-1")],
                                 [
-                                  "If your word has multiple interpretations, try to pick one and be consistent",
+                                  "• If your word has multiple interpretations, try to pick one and be consistent",
                                 ],
                               ),
                             ],
@@ -324,10 +307,9 @@ export const renderRulesModal = <Message>(onCloseRules: () => Message): Html => 
                           p(
                             [Class("flex items-start")],
                             [
-                              span([Class("mr-2 mt-1")], ["•"]),
                               span(
-                                [],
-                                ["Keep an eye out for players that guess a little too well"],
+                                [Class("mr-2 mt-1")],
+                                ["• Keep an eye out for players that guess a little too well"],
                               ),
                             ],
                           ),
@@ -353,10 +335,7 @@ export const renderRulesModal = <Message>(onCloseRules: () => Message): Html => 
                     [Class("text-gray-700 mb-2")],
                     ["• Create a lobby or join with a 4-letter code"],
                   ),
-                  p(
-                    [Class("text-gray-700 mb-2")],
-                    ["• The first player becomes the host and Master"],
-                  ),
+                  p([Class("text-gray-700 mb-2")], ["• The first player becomes the host"]),
                   p([Class("text-gray-700")], ["• Host can start the game when ready"]),
                 ],
               ),
@@ -369,7 +348,7 @@ export const renderRulesModal = <Message>(onCloseRules: () => Message): Html => 
             [
               button(
                 [
-                  OnClick(() => onCloseRules()),
+                  OnClick(onCloseRules()),
                   Class(
                     "bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition-colors duration-200",
                   ),
