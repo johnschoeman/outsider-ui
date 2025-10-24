@@ -16,6 +16,7 @@ import {
 } from "foldkit/html"
 
 import { Lobby, Player } from "../../domain"
+import * as Message from "../../message"
 import { renderRulesModal } from "./rulesModal"
 
 // Model
@@ -81,14 +82,7 @@ export const toggleRulesModal = (model: LandingModel): LandingModel => ({
 
 // View
 
-export function view<Message>(
-  model: LandingModel,
-  onPlayerNameChange: (name: string) => Message,
-  onJoinLobbyIdChange: (lobbyId: string) => Message,
-  onCreateLobby: Message,
-  onJoinLobby: Message,
-  onShowRules: Message,
-): Html {
+export function view(model: LandingModel): Html {
   const nameHasError = Option.isSome(model.nameError)
   const lobbyHasError = Option.isSome(model.lobbyError)
 
@@ -110,7 +104,7 @@ export function view<Message>(
               p([Class("text-gray-600 mb-4")], ["A social deduction game"]),
               button(
                 [
-                  OnClick(onShowRules),
+                  OnClick(() => Message.ShowRules.make()),
                   Class(
                     "text-blue-600 hover:text-blue-800 underline font-medium transition-colors duration-200",
                   ),
@@ -128,7 +122,7 @@ export function view<Message>(
               input([
                 Type("text"),
                 Value(model.playerName),
-                OnInput((value) => onPlayerNameChange(value)),
+                OnInput((value) => Message.PlayerNameChanged.make({ name: value })),
                 Class(
                   `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     nameHasError ? "border-red-500 bg-red-50" : "border-gray-300"
@@ -157,7 +151,7 @@ export function view<Message>(
                   h2([Class("text-lg font-semibold text-gray-800 mb-3")], ["Start New Game"]),
                   button(
                     [
-                      OnClick(() => onCreateLobby),
+                      OnClick(() => Message.CreateLobbyClicked.make()),
                       Class(
                         "w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
                       ),
@@ -185,7 +179,7 @@ export function view<Message>(
                           input([
                             Type("text"),
                             Value(model.joinLobbyId),
-                            OnInput((value) => onJoinLobbyIdChange(value)),
+                            OnInput((value) => Message.JoinLobbyIdChanged.make({ lobbyId: value })),
                             Class(
                               `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                                 lobbyHasError ? "border-red-500 bg-red-50" : "border-gray-300"
@@ -204,7 +198,7 @@ export function view<Message>(
                       ),
                       button(
                         [
-                          OnClick(() => onJoinLobby),
+                          OnClick(() => Message.JoinLobbyClicked.make()),
                           Class(
                             "w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
                           ),

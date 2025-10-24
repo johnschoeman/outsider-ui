@@ -2,6 +2,7 @@ import { Option, Schema as S } from "effect"
 import { Class, Html, OnClick, button, div, h1, h2, h3, li, p, span, ul } from "foldkit/html"
 
 import { Game, Player } from "../domain"
+import * as Message from "../message"
 
 export const LobbyModel = S.Struct({
   gameState: Game.GameState,
@@ -185,11 +186,7 @@ const renderGameInfo = (gameState: Game.GameState): Html => {
   )
 }
 
-export function view<Message>(
-  model: LobbyModel,
-  onStartGame: Message,
-  onLeaveLobby: Message,
-): Html {
+export function view(model: LobbyModel): Html {
   const canStartGame =
     model.gameState.players.length >= 3 &&
     model.gameState.players.length <= 8 &&
@@ -249,7 +246,7 @@ export function view<Message>(
                 [
                   button(
                     [
-                      OnClick(() => onStartGame),
+                      OnClick(() => Message.StartGameClicked.make()),
                       Class(
                         `flex-1 py-3 px-6 rounded-md font-medium transition-colors duration-200 ${
                           canStartGame
@@ -263,7 +260,7 @@ export function view<Message>(
 
                   button(
                     [
-                      OnClick(() => onLeaveLobby),
+                      OnClick(() => Message.LeaveLobbyClicked.make()),
                       Class(
                         "flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-md font-medium transition-colors duration-200",
                       ),
