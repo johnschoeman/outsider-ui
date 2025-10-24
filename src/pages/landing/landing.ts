@@ -88,7 +88,6 @@ export function view<Message>(
   onCreateLobby: Message,
   onJoinLobby: Message,
   onShowRules: Message,
-  onCloseRules: Message,
 ): Html {
   const nameHasError = Option.isSome(model.nameError)
   const lobbyHasError = Option.isSome(model.lobbyError)
@@ -222,7 +221,7 @@ export function view<Message>(
       ),
 
       // Rules Modal
-      ...(model.showRulesModal ? [renderRulesModal(onCloseRules)] : []),
+      ...(model.showRulesModal ? [renderRulesModal()] : []),
     ],
   )
 }

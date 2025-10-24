@@ -18,7 +18,6 @@ const view = (model: App.AppModel): Html => {
         Message.CreateLobbyClicked.make() as Message.Message,
         Message.JoinLobbyClicked.make() as Message.Message,
         Message.ShowRules.make() as Message.Message,
-        Message.CloseRules.make() as Message.Message,
       )
     }
 
