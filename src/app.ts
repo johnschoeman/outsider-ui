@@ -1,12 +1,12 @@
-import { Match as M, Option, Schema as S } from 'effect'
-import { Runtime } from 'foldkit'
-import { ST, ts } from 'foldkit/schema'
+import { Match as M, Option, Schema as S } from "effect"
+import { Runtime } from "foldkit"
+import { ST, ts } from "foldkit/schema"
 
-import { Lobby } from './domain'
-import { Game, Landing, Lobby as LobbyPage } from './pages'
+import { Lobby } from "./domain"
+import { Game, Landing, Lobby as LobbyPage } from "./pages"
 
 // APP STATE
-export const AppState = S.Literal('Landing', 'Lobby', 'Game')
+export const AppState = S.Literal("Landing", "Lobby", "Game")
 export type AppState = S.Schema.Type<typeof AppState>
 
 export const AppModel = S.Struct({
@@ -22,24 +22,24 @@ export const AppModel = S.Struct({
 export type AppModel = S.Schema.Type<typeof AppModel>
 
 // MESSAGES
-const NoOp = ts('NoOp')
-const PlayerNameChanged = ts('PlayerNameChanged', { name: S.String })
-const JoinLobbyIdChanged = ts('JoinLobbyIdChanged', { lobbyId: S.String })
-const CreateLobbyClicked = ts('CreateLobbyClicked')
-const JoinLobbyClicked = ts('JoinLobbyClicked')
-const LeaveLobbyClicked = ts('LeaveLobbyClicked')
-const StartGameClicked = ts('StartGameClicked')
-const ContinueToWordCreation = ts('ContinueToWordCreation')
-const SecretWordChanged = ts('SecretWordChanged', { word: S.String })
-const SubmitSecretWord = ts('SubmitSecretWord')
-const ContinueToGuessing = ts('ContinueToGuessing')
-const TimerTick = ts('TimerTick')
-const WordGuessed = ts('WordGuessed')
-const WordNotGuessed = ts('WordNotGuessed')
-const VoteForPlayer = ts('VoteForPlayer', { playerId: S.String })
-const NewGame = ts('NewGame')
-const ShowRules = ts('ShowRules')
-const CloseRules = ts('CloseRules')
+const NoOp = ts("NoOp")
+const PlayerNameChanged = ts("PlayerNameChanged", { name: S.String })
+const JoinLobbyIdChanged = ts("JoinLobbyIdChanged", { lobbyId: S.String })
+const CreateLobbyClicked = ts("CreateLobbyClicked")
+const JoinLobbyClicked = ts("JoinLobbyClicked")
+const LeaveLobbyClicked = ts("LeaveLobbyClicked")
+const StartGameClicked = ts("StartGameClicked")
+const ContinueToWordCreation = ts("ContinueToWordCreation")
+const SecretWordChanged = ts("SecretWordChanged", { word: S.String })
+const SubmitSecretWord = ts("SubmitSecretWord")
+const ContinueToGuessing = ts("ContinueToGuessing")
+const TimerTick = ts("TimerTick")
+const WordGuessed = ts("WordGuessed")
+const WordNotGuessed = ts("WordNotGuessed")
+const VoteForPlayer = ts("VoteForPlayer", { playerId: S.String })
+const NewGame = ts("NewGame")
+const ShowRules = ts("ShowRules")
+const CloseRules = ts("CloseRules")
 
 export const Message = S.Union(
   NoOp,
@@ -86,7 +86,7 @@ export type Message = ST<typeof Message>
 // INIT
 export const init = (): [AppModel, Runtime.Command<Message>[]] => [
   {
-    currentState: 'Landing',
+    currentState: "Landing",
     currentPlayerId: Option.none(),
     currentPlayerName: loadPlayerName(),
     currentLobbyId: Option.none(),
@@ -101,13 +101,13 @@ export const init = (): [AppModel, Runtime.Command<Message>[]] => [
 ]
 
 // LOCAL STORAGE HELPERS
-const PLAYER_NAME_KEY = 'outsider-player-name'
+const PLAYER_NAME_KEY = "outsider-player-name"
 
 const loadPlayerName = (): string => {
   try {
-    return localStorage.getItem(PLAYER_NAME_KEY) || ''
+    return localStorage.getItem(PLAYER_NAME_KEY) || ""
   } catch {
-    return ''
+    return ""
   }
 }
 
@@ -124,7 +124,7 @@ export const update = (
   model: AppModel,
   message: Message,
 ): [AppModel, Runtime.Command<Message>[]] => {
-  console.log('update ran', message)
+  console.log("update ran", message)
   const returnValue = M.value(message).pipe(
     M.withReturnType<[AppModel, Runtime.Command<Message>[]]>(),
     M.tagsExhaustive({
@@ -169,7 +169,7 @@ export const update = (
         return [
           {
             ...model,
-            currentState: 'Lobby',
+            currentState: "Lobby",
             currentPlayerId: Option.some(playerId),
             currentLobbyId: Option.some(lobbyId),
             landingPage: validatedLanding,
@@ -205,7 +205,7 @@ export const update = (
         return [
           {
             ...model,
-            currentState: 'Lobby',
+            currentState: "Lobby",
             currentPlayerId: Option.some(playerId),
             currentLobbyId: Option.some(validatedLanding.joinLobbyId),
             landingPage: validatedLanding,
@@ -218,7 +218,7 @@ export const update = (
       LeaveLobbyClicked: () => [
         {
           ...model,
-          currentState: 'Landing',
+          currentState: "Landing",
           currentPlayerId: Option.none(),
           currentLobbyId: Option.none(),
           lobbyPage: Option.none(),
@@ -236,14 +236,14 @@ export const update = (
         const gameModel: Game.GameModel = {
           gameState: updatedLobby.gameState,
           currentPlayerId: model.currentPlayerId.value,
-          secretWordInput: '',
+          secretWordInput: "",
           secretWordError: Option.none(),
         }
 
         return [
           {
             ...model,
-            currentState: 'Game',
+            currentState: "Game",
             lobbyPage: Option.some(updatedLobby),
             gamePage: Option.some(gameModel),
           },
@@ -258,7 +258,7 @@ export const update = (
 
         const updatedGameState = {
           ...model.gamePage.value.gameState,
-          phase: Option.some('WordCreation' as const),
+          phase: Option.some("WordCreation" as const),
         }
 
         const updatedGameModel = {
@@ -312,7 +312,7 @@ export const update = (
         const updatedGameState = {
           ...validatedGameModel.gameState,
           secretWord: Option.some(secretWord),
-          phase: Option.some('ShareSecretWord' as const),
+          phase: Option.some("ShareSecretWord" as const),
           phaseTimer: Option.some(30), // 30 seconds
         }
 
@@ -337,7 +337,7 @@ export const update = (
 
         const updatedGameState = {
           ...model.gamePage.value.gameState,
-          phase: Option.some('PlayerGuessing' as const),
+          phase: Option.some("PlayerGuessing" as const),
           phaseTimer: Option.some(300), // 5 minutes
         }
 
@@ -394,7 +394,7 @@ export const update = (
         const updatedGameState = {
           ...model.gamePage.value.gameState,
           wordGuessed: Option.some(true),
-          phase: Option.some('Voting' as const),
+          phase: Option.some("Voting" as const),
           phaseTimer: Option.some(300), // 5 minutes for voting
         }
 
@@ -420,7 +420,7 @@ export const update = (
         const updatedGameState = {
           ...model.gamePage.value.gameState,
           wordGuessed: Option.some(false),
-          phase: Option.some('Voting' as const),
+          phase: Option.some("Voting" as const),
           phaseTimer: Option.some(300), // 5 minutes for voting
         }
 
@@ -463,7 +463,7 @@ export const update = (
           players: updatedPlayers,
           ...(allVoted
             ? {
-                phase: Option.some('Results' as const),
+                phase: Option.some("Results" as const),
                 phaseTimer: Option.none(),
               }
             : {}),
@@ -486,7 +486,7 @@ export const update = (
       NewGame: () => [
         {
           ...model,
-          currentState: 'Landing',
+          currentState: "Landing",
           currentPlayerId: Option.none(),
           currentLobbyId: Option.none(),
           landingPage: {
@@ -500,7 +500,7 @@ export const update = (
       ],
 
       ShowRules: () => {
-        console.log('HELLO ShowRules')
+        console.log("HELLO ShowRules")
         return [
           {
             ...model,
@@ -519,7 +519,7 @@ export const update = (
       ],
     }),
   )
-  console.log('returnValue', { returnValue })
+  console.log("returnValue", { returnValue })
   return returnValue
 }
 

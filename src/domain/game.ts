@@ -1,18 +1,18 @@
-import { Option, Schema as S } from 'effect'
+import { Option, Schema as S } from "effect"
 
-import { Player } from './player'
+import { Player } from "./player"
 
 export const GamePhase = S.Literal(
-  'RoleAssignment',
-  'WordCreation',
-  'ShareSecretWord',
-  'PlayerGuessing',
-  'Voting',
-  'Results',
+  "RoleAssignment",
+  "WordCreation",
+  "ShareSecretWord",
+  "PlayerGuessing",
+  "Voting",
+  "Results",
 )
 export type GamePhase = S.Schema.Type<typeof GamePhase>
 
-export const GameStatus = S.Literal('Pending', 'InProgress', 'Completed')
+export const GameStatus = S.Literal("Pending", "InProgress", "Completed")
 export type GameStatus = S.Schema.Type<typeof GameStatus>
 
 export const GameState = S.Struct({
@@ -25,7 +25,7 @@ export const GameState = S.Struct({
   phaseTimer: S.Option(S.Number), // seconds remaining
   masterId: S.Option(S.String),
   outsiderId: S.Option(S.String),
-  winner: S.Option(S.Literal('OutsiderWins', 'TeamWins')),
+  winner: S.Option(S.Literal("OutsiderWins", "TeamWins")),
 })
 
 export type GameState = S.Schema.Type<typeof GameState>
@@ -33,7 +33,7 @@ export type GameState = S.Schema.Type<typeof GameState>
 export const createGameState = (lobbyId: string): GameState => ({
   lobbyId,
   players: [],
-  status: 'Pending',
+  status: "Pending",
   phase: Option.none(),
   secretWord: Option.none(),
   wordGuessed: Option.none(),
@@ -68,19 +68,19 @@ export const startGame = (gameState: GameState): GameState => {
 
   const updatedPlayers = shuffledPlayers.map((player, index): Player => {
     if (index === masterIndex) {
-      return { ...player, role: Option.some('Master' as const) }
+      return { ...player, role: Option.some("Master" as const) }
     } else if (index === outsiderIndex) {
-      return { ...player, role: Option.some('Outsider' as const) }
+      return { ...player, role: Option.some("Outsider" as const) }
     } else {
-      return { ...player, role: Option.some('Commoner' as const) }
+      return { ...player, role: Option.some("Commoner" as const) }
     }
   })
 
   return {
     ...gameState,
     players: updatedPlayers,
-    status: 'InProgress',
-    phase: Option.some('RoleAssignment'),
+    status: "InProgress",
+    phase: Option.some("RoleAssignment"),
     masterId: Option.some(shuffledPlayers[masterIndex].id),
     outsiderId: Option.some(shuffledPlayers[outsiderIndex].id),
   }
@@ -91,13 +91,13 @@ export const setSecretWord =
   (gameState: GameState): GameState => ({
     ...gameState,
     secretWord: Option.some(word),
-    phase: Option.some('ShareSecretWord'),
+    phase: Option.some("ShareSecretWord"),
     phaseTimer: Option.some(30), // 30 seconds
   })
 
 export const startGuessingPhase = (gameState: GameState): GameState => ({
   ...gameState,
-  phase: Option.some('PlayerGuessing'),
+  phase: Option.some("PlayerGuessing"),
   phaseTimer: Option.some(300), // 5 minutes
 })
 
@@ -106,13 +106,13 @@ export const setWordGuessed =
   (gameState: GameState): GameState => ({
     ...gameState,
     wordGuessed: Option.some(guessed),
-    phase: Option.some('Voting'),
+    phase: Option.some("Voting"),
     phaseTimer: Option.some(300), // 5 minutes
   })
 
 export const calculateResults = (gameState: GameState): GameState => {
   const outsider = gameState.players.find(
-    (p) => Option.isSome(p.role) && p.role.value === 'Outsider',
+    (p) => Option.isSome(p.role) && p.role.value === "Outsider",
   )
 
   if (!outsider) {
@@ -126,11 +126,11 @@ export const calculateResults = (gameState: GameState): GameState => {
   const totalVoters = gameState.players.length
   const majorityVotes = Math.floor(totalVoters / 2) + 1
 
-  const winner = votesForOutsider >= majorityVotes ? 'TeamWins' : 'OutsiderWins'
+  const winner = votesForOutsider >= majorityVotes ? "TeamWins" : "OutsiderWins"
 
   return {
     ...gameState,
-    phase: Option.some('Results'),
+    phase: Option.some("Results"),
     winner: Option.some(winner),
     phaseTimer: Option.some(60), // 60 seconds to show results
   }
@@ -138,7 +138,7 @@ export const calculateResults = (gameState: GameState): GameState => {
 
 export const resetToLobby = (gameState: GameState): GameState => ({
   ...gameState,
-  status: 'Pending',
+  status: "Pending",
   phase: Option.none(),
   secretWord: Option.none(),
   wordGuessed: Option.none(),

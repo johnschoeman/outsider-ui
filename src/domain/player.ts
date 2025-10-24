@@ -1,6 +1,6 @@
-import { Option, Schema as S } from 'effect'
+import { Option, Schema as S } from "effect"
 
-export const PlayerRole = S.Literal('Master', 'Outsider', 'Commoner')
+export const PlayerRole = S.Literal("Master", "Outsider", "Commoner")
 export type PlayerRole = S.Schema.Type<typeof PlayerRole>
 
 export const Player = S.Struct({
@@ -46,11 +46,11 @@ export const validateName = (name: string): Option.Option<string> => {
   const trimmedName = name.trim()
 
   if (trimmedName.length === 0) {
-    return Option.some('Please enter your name')
+    return Option.some("Please enter your name")
   }
 
   if (trimmedName.length > 20) {
-    return Option.some('Name must be 20 characters or less')
+    return Option.some("Name must be 20 characters or less")
   }
 
   return Option.none()

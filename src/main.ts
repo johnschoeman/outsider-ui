@@ -1,12 +1,12 @@
-import { Option } from 'effect'
-import { Runtime } from 'foldkit'
-import { Class, Html, div, h1 } from 'foldkit/html'
+import { Option } from "effect"
+import { Runtime } from "foldkit"
+import { Class, Html, div, h1 } from "foldkit/html"
 
-import * as App from './app'
-import { Game, Landing, Lobby } from './pages'
+import * as App from "./app"
+import { Game, Landing, Lobby } from "./pages"
 
 const view = (model: App.AppModel): Html => {
-  if (model.currentState === 'Landing') {
+  if (model.currentState === "Landing") {
     return Landing.view(
       model.landingPage,
       App.playerNameChanged,
@@ -18,11 +18,11 @@ const view = (model: App.AppModel): Html => {
     )
   }
 
-  if (model.currentState === 'Lobby') {
+  if (model.currentState === "Lobby") {
     if (Option.isNone(model.lobbyPage)) {
       return div(
-        [Class('min-h-screen bg-gray-100 flex items-center justify-center')],
-        [h1([Class('text-2xl text-red-600')], ['Error: No lobby data'])],
+        [Class("min-h-screen bg-gray-100 flex items-center justify-center")],
+        [h1([Class("text-2xl text-red-600")], ["Error: No lobby data"])],
       )
     }
 
@@ -30,11 +30,11 @@ const view = (model: App.AppModel): Html => {
   }
 
   // Game state
-  if (model.currentState === 'Game') {
+  if (model.currentState === "Game") {
     if (Option.isNone(model.gamePage)) {
       return div(
-        [Class('min-h-screen bg-gray-100 flex items-center justify-center')],
-        [h1([Class('text-2xl text-red-600')], ['Error: No game data'])],
+        [Class("min-h-screen bg-gray-100 flex items-center justify-center")],
+        [h1([Class("text-2xl text-red-600")], ["Error: No game data"])],
       )
     }
 
@@ -53,8 +53,8 @@ const view = (model: App.AppModel): Html => {
 
   // Fallback
   return div(
-    [Class('min-h-screen bg-gray-100 flex items-center justify-center')],
-    [h1([Class('text-2xl text-gray-600')], ['Unknown state'])],
+    [Class("min-h-screen bg-gray-100 flex items-center justify-center")],
+    [h1([Class("text-2xl text-gray-600")], ["Unknown state"])],
   )
 }
 
@@ -63,7 +63,7 @@ const app = Runtime.makeElement({
   init: App.init,
   update: App.update,
   view,
-  container: document.getElementById('root')!,
+  container: document.getElementById("root")!,
 })
 
 Runtime.run(app)
