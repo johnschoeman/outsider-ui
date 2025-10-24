@@ -3,14 +3,16 @@ import { Runtime } from "foldkit"
 import { ST, ts } from "foldkit/schema"
 
 import { Lobby } from "./domain"
+import { loadPlayerName, savePlayerName } from "./localStorage"
 import { Game, Landing, Lobby as LobbyPage } from "./pages"
 
-// APP STATE
+// Model
+
 export const AppState = S.Literal("Landing", "Lobby", "Game")
 export type AppState = S.Schema.Type<typeof AppState>
 
 export const AppModel = S.Struct({
-  currentState: AppState,
+  currentPage: AppState,
   currentPlayerId: S.Option(S.String),
   currentPlayerName: S.String,
   currentLobbyId: S.Option(S.String),
@@ -21,7 +23,8 @@ export const AppModel = S.Struct({
 
 export type AppModel = S.Schema.Type<typeof AppModel>
 
-// MESSAGES
+// Messages
+
 const NoOp = ts("NoOp")
 const PlayerNameChanged = ts("PlayerNameChanged", { name: S.String })
 const JoinLobbyIdChanged = ts("JoinLobbyIdChanged", { lobbyId: S.String })
@@ -83,10 +86,11 @@ type CloseRules = ST<typeof CloseRules>
 
 export type Message = ST<typeof Message>
 
-// INIT
+// Init
+
 export const init = (): [AppModel, Runtime.Command<Message>[]] => [
   {
-    currentState: "Landing",
+    currentPage: "Landing",
     currentPlayerId: Option.none(),
     currentPlayerName: loadPlayerName(),
     currentLobbyId: Option.none(),
@@ -100,26 +104,8 @@ export const init = (): [AppModel, Runtime.Command<Message>[]] => [
   [],
 ]
 
-// LOCAL STORAGE HELPERS
-const PLAYER_NAME_KEY = "outsider-player-name"
+// Update
 
-const loadPlayerName = (): string => {
-  try {
-    return localStorage.getItem(PLAYER_NAME_KEY) || ""
-  } catch {
-    return ""
-  }
-}
-
-const savePlayerName = (name: string): void => {
-  try {
-    localStorage.setItem(PLAYER_NAME_KEY, name)
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-// UPDATE
 export const update = (
   model: AppModel,
   message: Message,
@@ -169,7 +155,7 @@ export const update = (
         return [
           {
             ...model,
-            currentState: "Lobby",
+            currentPage: "Lobby",
             currentPlayerId: Option.some(playerId),
             currentLobbyId: Option.some(lobbyId),
             landingPage: validatedLanding,
@@ -205,7 +191,7 @@ export const update = (
         return [
           {
             ...model,
-            currentState: "Lobby",
+            currentPage: "Lobby",
             currentPlayerId: Option.some(playerId),
             currentLobbyId: Option.some(validatedLanding.joinLobbyId),
             landingPage: validatedLanding,
@@ -218,7 +204,7 @@ export const update = (
       LeaveLobbyClicked: () => [
         {
           ...model,
-          currentState: "Landing",
+          currentPage: "Landing",
           currentPlayerId: Option.none(),
           currentLobbyId: Option.none(),
           lobbyPage: Option.none(),
@@ -243,7 +229,7 @@ export const update = (
         return [
           {
             ...model,
-            currentState: "Game",
+            currentPage: "Game",
             lobbyPage: Option.some(updatedLobby),
             gamePage: Option.some(gameModel),
           },
@@ -486,7 +472,7 @@ export const update = (
       NewGame: () => [
         {
           ...model,
-          currentState: "Landing",
+          currentPage: "Landing",
           currentPlayerId: Option.none(),
           currentLobbyId: Option.none(),
           landingPage: {

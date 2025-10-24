@@ -18,6 +18,8 @@ import {
 import { Lobby, Player } from "../../domain"
 import { renderRulesModal } from "./rulesModal"
 
+// Model
+
 export const LandingModel = S.Struct({
   playerName: S.String,
   joinLobbyId: S.String,
@@ -28,6 +30,8 @@ export const LandingModel = S.Struct({
 
 export type LandingModel = S.Schema.Type<typeof LandingModel>
 
+// Init
+
 export const init = (): LandingModel => ({
   playerName: "",
   joinLobbyId: "",
@@ -35,6 +39,8 @@ export const init = (): LandingModel => ({
   lobbyError: Option.none(),
   showRulesModal: false,
 })
+
+// Update
 
 export const updatePlayerName =
   (name: string) =>
@@ -72,6 +78,8 @@ export const toggleRulesModal = (model: LandingModel): LandingModel => ({
   ...model,
   showRulesModal: !model.showRulesModal,
 })
+
+// View
 
 export function view<Message>(
   model: LandingModel,
