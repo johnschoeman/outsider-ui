@@ -459,13 +459,6 @@ export function view<Message>(
   const nameHasError = Option.isSome(model.nameError)
   const lobbyHasError = Option.isSome(model.lobbyError)
 
-  console.log('view hellasdfsdf')
-
-  const onClickHowToPlay = () => {
-    console.log('OnClick onShowRules')
-    onShowRules()
-  }
-
   return div(
     [
       Class(

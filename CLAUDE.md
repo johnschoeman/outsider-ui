@@ -123,13 +123,13 @@ Pages should contain a minimum of business logic, instead importing from the dom
 ## Style Guide
 
 Use double quotes for all string literals:
+
 ```
-const myVar = "A String" 
+const myVar = "A String"
 
 // Title
 h1(
   [Class("text-3xl font-bold text-gray-800 mb-6 text-center")],
   ["How to Play Outsider"],
-),
-
+)
 ```
