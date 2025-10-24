@@ -85,10 +85,10 @@ export function view<Message>(
   model: LandingModel,
   onPlayerNameChange: (name: string) => Message,
   onJoinLobbyIdChange: (lobbyId: string) => Message,
-  onCreateLobby: () => Message,
-  onJoinLobby: () => Message,
-  onShowRules: () => Message,
-  onCloseRules: () => Message,
+  onCreateLobby: Message,
+  onJoinLobby: Message,
+  onShowRules: Message,
+  onCloseRules: Message,
 ): Html {
   const nameHasError = Option.isSome(model.nameError)
   const lobbyHasError = Option.isSome(model.lobbyError)
@@ -111,7 +111,7 @@ export function view<Message>(
               p([Class("text-gray-600 mb-4")], ["A social deduction game"]),
               button(
                 [
-                  OnClick(onShowRules()),
+                  OnClick(() => onShowRules),
                   Class(
                     "text-blue-600 hover:text-blue-800 underline font-medium transition-colors duration-200",
                   ),
@@ -158,7 +158,7 @@ export function view<Message>(
                   h2([Class("text-lg font-semibold text-gray-800 mb-3")], ["Start New Game"]),
                   button(
                     [
-                      OnClick(() => onCreateLobby()),
+                      OnClick(() => onCreateLobby),
                       Class(
                         "w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
                       ),
@@ -205,7 +205,7 @@ export function view<Message>(
                       ),
                       button(
                         [
-                          OnClick(() => onJoinLobby()),
+                          OnClick(() => onJoinLobby),
                           Class(
                             "w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
                           ),

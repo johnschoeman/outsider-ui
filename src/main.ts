@@ -5,17 +5,19 @@ import { Class, Html, div, h1 } from "foldkit/html"
 import * as App from "./app"
 import { Game, Landing, Lobby } from "./pages"
 
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+
 const view = (model: App.AppModel): Html => {
   switch (model.currentPage) {
     case "Landing": {
       return Landing.view(
         model.landingPage,
-        App.playerNameChanged,
-        App.joinLobbyIdChanged,
-        App.createLobbyClicked,
-        App.joinLobbyClicked,
-        App.showRules,
-        App.closeRules,
+        (name) => App.PlayerNameChanged.make({ name }) as App.Message,
+        (lobbyId) => App.JoinLobbyIdChanged.make({ lobbyId }) as App.Message,
+        App.CreateLobbyClicked.make() as App.Message,
+        App.JoinLobbyClicked.make() as App.Message,
+        App.ShowRules.make() as App.Message,
+        App.CloseRules.make() as App.Message,
       )
     }
 
@@ -26,7 +28,11 @@ const view = (model: App.AppModel): Html => {
           [h1([Class("text-2xl text-red-600")], ["Error: No lobby data"])],
         )
       }
-      return Lobby.view(model.lobbyPage.value, App.startGameClicked, App.leaveLobbyClicked)
+      return Lobby.view(
+        model.lobbyPage.value,
+        App.StartGameClicked.make() as App.Message,
+        App.LeaveLobbyClicked.make() as App.Message,
+      )
     }
 
     case "Game": {
@@ -38,14 +44,14 @@ const view = (model: App.AppModel): Html => {
       }
       return Game.view(
         model.gamePage.value,
-        App.continueToWordCreation,
-        App.secretWordChanged,
-        App.submitSecretWord,
-        App.continueToGuessing,
-        App.wordGuessed,
-        App.wordNotGuessed,
-        App.voteForPlayer,
-        App.newGame,
+        App.ContinueToWordCreation.make() as App.Message,
+        (word) => App.SecretWordChanged.make({ word }) as App.Message,
+        App.SubmitSecretWord.make() as App.Message,
+        App.ContinueToGuessing.make() as App.Message,
+        App.WordGuessed.make() as App.Message,
+        App.WordNotGuessed.make() as App.Message,
+        (playerId) => App.VoteForPlayer.make({ playerId }) as App.Message,
+        App.NewGame.make() as App.Message,
       )
     }
 

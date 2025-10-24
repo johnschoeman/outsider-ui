@@ -187,8 +187,8 @@ const renderGameInfo = (gameState: Game.GameState): Html => {
 
 export function view<Message>(
   model: LobbyModel,
-  onStartGame: () => Message,
-  onLeaveLobby: () => Message,
+  onStartGame: Message,
+  onLeaveLobby: Message,
 ): Html {
   const canStartGame =
     model.gameState.players.length >= 3 &&
@@ -249,7 +249,7 @@ export function view<Message>(
                 [
                   button(
                     [
-                      OnClick(() => onStartGame()),
+                      OnClick(() => onStartGame),
                       Class(
                         `flex-1 py-3 px-6 rounded-md font-medium transition-colors duration-200 ${
                           canStartGame
@@ -263,7 +263,7 @@ export function view<Message>(
 
                   button(
                     [
-                      OnClick(() => onLeaveLobby()),
+                      OnClick(() => onLeaveLobby),
                       Class(
                         "flex-1 bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-md font-medium transition-colors duration-200",
                       ),

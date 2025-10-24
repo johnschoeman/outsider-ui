@@ -179,7 +179,7 @@ const renderRoleAssignment = (currentPlayer: Player.Player): Html => {
 const renderWordCreation = <Message>(
   model: GameModel,
   onSecretWordChange: (word: string) => Message,
-  onSubmitSecretWord: () => Message,
+  onSubmitSecretWord: Message,
 ): Html => {
   const currentPlayer = getCurrentPlayer(model.gameState, model.currentPlayerId)
 
@@ -320,7 +320,7 @@ const renderWordCreation = <Message>(
 
               button(
                 [
-                  OnClick(() => onSubmitSecretWord()),
+                  OnClick(() => onSubmitSecretWord),
                   Class(
                     "w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200",
                   ),
@@ -335,10 +335,7 @@ const renderWordCreation = <Message>(
   )
 }
 
-const renderShareSecretWord = <Message>(
-  model: GameModel,
-  onContinueToGuessing: () => Message,
-): Html => {
+const renderShareSecretWord = <Message>(model: GameModel, onContinueToGuessing: Message): Html => {
   const currentPlayer = getCurrentPlayer(model.gameState, model.currentPlayerId)
   const timeRemaining = Option.getOrElse(model.gameState.phaseTimer, () => 0)
 
@@ -487,7 +484,7 @@ const renderShareSecretWord = <Message>(
                   [
                     button(
                       [
-                        OnClick(() => onContinueToGuessing()),
+                        OnClick(() => onContinueToGuessing),
                         Class(
                           "bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200",
                         ),
@@ -506,8 +503,8 @@ const renderShareSecretWord = <Message>(
 
 const renderPlayerGuessing = <Message>(
   model: GameModel,
-  onWordGuessed: () => Message,
-  onWordNotGuessed: () => Message,
+  onWordGuessed: Message,
+  onWordNotGuessed: Message,
 ): Html => {
   const currentPlayer = getCurrentPlayer(model.gameState, model.currentPlayerId)
   const timeRemaining = Option.getOrElse(model.gameState.phaseTimer, () => 0)
@@ -744,7 +741,7 @@ const renderPlayerGuessing = <Message>(
                                 [
                                   button(
                                     [
-                                      OnClick(() => onWordGuessed()),
+                                      OnClick(() => onWordGuessed),
                                       Class(
                                         "bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200",
                                       ),
@@ -753,7 +750,7 @@ const renderPlayerGuessing = <Message>(
                                   ),
                                   button(
                                     [
-                                      OnClick(() => onWordNotGuessed()),
+                                      OnClick(() => onWordNotGuessed),
                                       Class(
                                         "bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200",
                                       ),
@@ -1000,7 +997,7 @@ const renderVoting = <Message>(
   )
 }
 
-const renderResults = <Message>(model: GameModel, onNewGame: () => Message): Html => {
+const renderResults = <Message>(model: GameModel, onNewGame: Message): Html => {
   const players = [...model.gameState.players]
   const outsiderPlayer = players.find((p) => Option.isSome(p.role) && p.role.value === "Outsider")
   const _masterPlayer = players.find((p) => Option.isSome(p.role) && p.role.value === "Master")
@@ -1257,7 +1254,7 @@ const renderResults = <Message>(model: GameModel, onNewGame: () => Message): Htm
         [
           button(
             [
-              OnClick(() => onNewGame()),
+              OnClick(() => onNewGame),
               Class(
                 "bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-lg text-lg transition-colors duration-200",
               ),
@@ -1299,14 +1296,14 @@ const renderGameInfo = (gameState: Game.GameState): Html => {
 
 export function view<Message>(
   model: GameModel,
-  onContinueToWordCreation: () => Message,
+  onContinueToWordCreation: Message,
   onSecretWordChange: (word: string) => Message,
-  onSubmitSecretWord: () => Message,
-  onContinueToGuessing: () => Message,
-  onWordGuessed: () => Message,
-  onWordNotGuessed: () => Message,
+  onSubmitSecretWord: Message,
+  onContinueToGuessing: Message,
+  onWordGuessed: Message,
+  onWordNotGuessed: Message,
   onVoteForPlayer: (playerId: string) => Message,
-  onNewGame: () => Message,
+  onNewGame: Message,
 ): Html {
   const currentPlayer = getCurrentPlayer(model.gameState, model.currentPlayerId)
   const currentPhase = Option.getOrElse(model.gameState.phase, () => "Unknown")
@@ -1360,7 +1357,7 @@ export function view<Message>(
                               ),
                               button(
                                 [
-                                  OnClick(() => onContinueToWordCreation()),
+                                  OnClick(() => onContinueToWordCreation),
                                   Class(
                                     "bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-md transition-colors duration-200",
                                   ),

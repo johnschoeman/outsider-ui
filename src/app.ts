@@ -26,23 +26,23 @@ export type AppModel = S.Schema.Type<typeof AppModel>
 // Messages
 
 const NoOp = ts("NoOp")
-const PlayerNameChanged = ts("PlayerNameChanged", { name: S.String })
-const JoinLobbyIdChanged = ts("JoinLobbyIdChanged", { lobbyId: S.String })
-const CreateLobbyClicked = ts("CreateLobbyClicked")
-const JoinLobbyClicked = ts("JoinLobbyClicked")
-const LeaveLobbyClicked = ts("LeaveLobbyClicked")
-const StartGameClicked = ts("StartGameClicked")
-const ContinueToWordCreation = ts("ContinueToWordCreation")
-const SecretWordChanged = ts("SecretWordChanged", { word: S.String })
-const SubmitSecretWord = ts("SubmitSecretWord")
-const ContinueToGuessing = ts("ContinueToGuessing")
+export const PlayerNameChanged = ts("PlayerNameChanged", { name: S.String })
+export const JoinLobbyIdChanged = ts("JoinLobbyIdChanged", { lobbyId: S.String })
+export const CreateLobbyClicked = ts("CreateLobbyClicked")
+export const JoinLobbyClicked = ts("JoinLobbyClicked")
+export const LeaveLobbyClicked = ts("LeaveLobbyClicked")
+export const StartGameClicked = ts("StartGameClicked")
+export const ContinueToWordCreation = ts("ContinueToWordCreation")
+export const SecretWordChanged = ts("SecretWordChanged", { word: S.String })
+export const SubmitSecretWord = ts("SubmitSecretWord")
+export const ContinueToGuessing = ts("ContinueToGuessing")
 const TimerTick = ts("TimerTick")
-const WordGuessed = ts("WordGuessed")
-const WordNotGuessed = ts("WordNotGuessed")
-const VoteForPlayer = ts("VoteForPlayer", { playerId: S.String })
-const NewGame = ts("NewGame")
-const ShowRules = ts("ShowRules")
-const CloseRules = ts("CloseRules")
+export const WordGuessed = ts("WordGuessed")
+export const WordNotGuessed = ts("WordNotGuessed")
+export const VoteForPlayer = ts("VoteForPlayer", { playerId: S.String })
+export const NewGame = ts("NewGame")
+export const ShowRules = ts("ShowRules")
+export const CloseRules = ts("CloseRules")
 
 export const Message = S.Union(
   NoOp,
@@ -110,7 +110,6 @@ export const update = (
   model: AppModel,
   message: Message,
 ): [AppModel, Runtime.Command<Message>[]] => {
-  console.log("update ran", message)
   const returnValue = M.value(message).pipe(
     M.withReturnType<[AppModel, Runtime.Command<Message>[]]>(),
     M.tagsExhaustive({
@@ -486,7 +485,6 @@ export const update = (
       ],
 
       ShowRules: () => {
-        console.log("HELLO ShowRules")
         return [
           {
             ...model,
@@ -505,39 +503,6 @@ export const update = (
       ],
     }),
   )
-  console.log("returnValue", { returnValue })
+
   return returnValue
 }
-
-// MESSAGE CREATORS
-export const playerNameChanged = (name: string): Message => PlayerNameChanged.make({ name })
-
-export const joinLobbyIdChanged = (lobbyId: string): Message => JoinLobbyIdChanged.make({ lobbyId })
-
-export const createLobbyClicked = (): Message => CreateLobbyClicked.make()
-
-export const joinLobbyClicked = (): Message => JoinLobbyClicked.make()
-
-export const leaveLobbyClicked = (): Message => LeaveLobbyClicked.make()
-
-export const startGameClicked = (): Message => StartGameClicked.make()
-
-export const continueToWordCreation = (): Message => ContinueToWordCreation.make()
-
-export const secretWordChanged = (word: string): Message => SecretWordChanged.make({ word })
-
-export const submitSecretWord = (): Message => SubmitSecretWord.make()
-
-export const continueToGuessing = (): Message => ContinueToGuessing.make()
-
-export const wordGuessed = (): Message => WordGuessed.make()
-
-export const wordNotGuessed = (): Message => WordNotGuessed.make()
-
-export const voteForPlayer = (playerId: string): Message => VoteForPlayer.make({ playerId })
-
-export const newGame = (): Message => NewGame.make()
-
-export const showRules = (): Message => ShowRules.make()
-
-export const closeRules = (): Message => CloseRules.make()

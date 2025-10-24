@@ -1,6 +1,6 @@
 import { Class, Html, OnClick, button, div, h1, h2, h3, p, span } from "foldkit/html"
 
-export const renderRulesModal = <Message>(onCloseRules: () => Message): Html => {
+export const renderRulesModal = <Message>(onCloseRules: Message): Html => {
   return div(
     [Class("fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50")],
     [
@@ -10,7 +10,7 @@ export const renderRulesModal = <Message>(onCloseRules: () => Message): Html => 
           // Close button
           button(
             [
-              OnClick(onCloseRules()),
+              OnClick(() => onCloseRules),
               Class("absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold"),
             ],
             ["×"],
@@ -348,7 +348,7 @@ export const renderRulesModal = <Message>(onCloseRules: () => Message): Html => 
             [
               button(
                 [
-                  OnClick(onCloseRules()),
+                  OnClick(() => onCloseRules),
                   Class(
                     "bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition-colors duration-200",
                   ),
