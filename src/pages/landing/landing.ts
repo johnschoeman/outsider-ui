@@ -111,7 +111,7 @@ export function view<Message>(
               p([Class("text-gray-600 mb-4")], ["A social deduction game"]),
               button(
                 [
-                  OnClick(() => onShowRules),
+                  OnClick(onShowRules),
                   Class(
                     "text-blue-600 hover:text-blue-800 underline font-medium transition-colors duration-200",
                   ),

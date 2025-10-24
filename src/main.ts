@@ -3,6 +3,7 @@ import { Runtime } from "foldkit"
 import { Class, Html, div, h1 } from "foldkit/html"
 
 import * as App from "./app"
+import * as Message from "./message"
 import { Game, Landing, Lobby } from "./pages"
 
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
@@ -12,12 +13,12 @@ const view = (model: App.AppModel): Html => {
     case "Landing": {
       return Landing.view(
         model.landingPage,
-        (name) => App.PlayerNameChanged.make({ name }) as App.Message,
-        (lobbyId) => App.JoinLobbyIdChanged.make({ lobbyId }) as App.Message,
-        App.CreateLobbyClicked.make() as App.Message,
-        App.JoinLobbyClicked.make() as App.Message,
-        App.ShowRules.make() as App.Message,
-        App.CloseRules.make() as App.Message,
+        (name) => Message.PlayerNameChanged.make({ name }) as Message.Message,
+        (lobbyId) => Message.JoinLobbyIdChanged.make({ lobbyId }) as Message.Message,
+        Message.CreateLobbyClicked.make() as Message.Message,
+        Message.JoinLobbyClicked.make() as Message.Message,
+        Message.ShowRules.make() as Message.Message,
+        Message.CloseRules.make() as Message.Message,
       )
     }
 
@@ -30,8 +31,8 @@ const view = (model: App.AppModel): Html => {
       }
       return Lobby.view(
         model.lobbyPage.value,
-        App.StartGameClicked.make() as App.Message,
-        App.LeaveLobbyClicked.make() as App.Message,
+        Message.StartGameClicked.make() as Message.Message,
+        Message.LeaveLobbyClicked.make() as Message.Message,
       )
     }
 
@@ -44,14 +45,14 @@ const view = (model: App.AppModel): Html => {
       }
       return Game.view(
         model.gamePage.value,
-        App.ContinueToWordCreation.make() as App.Message,
-        (word) => App.SecretWordChanged.make({ word }) as App.Message,
-        App.SubmitSecretWord.make() as App.Message,
-        App.ContinueToGuessing.make() as App.Message,
-        App.WordGuessed.make() as App.Message,
-        App.WordNotGuessed.make() as App.Message,
-        (playerId) => App.VoteForPlayer.make({ playerId }) as App.Message,
-        App.NewGame.make() as App.Message,
+        Message.ContinueToWordCreation.make() as Message.Message,
+        (word) => Message.SecretWordChanged.make({ word }) as Message.Message,
+        Message.SubmitSecretWord.make() as Message.Message,
+        Message.ContinueToGuessing.make() as Message.Message,
+        Message.WordGuessed.make() as Message.Message,
+        Message.WordNotGuessed.make() as Message.Message,
+        (playerId) => Message.VoteForPlayer.make({ playerId }) as Message.Message,
+        Message.NewGame.make() as Message.Message,
       )
     }
 
