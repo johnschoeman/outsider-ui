@@ -8,9 +8,9 @@ This is "Outsider UI" - a web-based multiplayer social deduction game built with
 
 ## Key Technologies
 
-- **Foldkit**: Functional UI framework with Effect-TS integration for component rendering and state management
-- **Effect-TS**: Functional programming library used for schemas, pattern matching, and Option types
 - **Vite**: Build tool and dev server
+- **Effect-TS**: Functional programming library used for schemas, pattern matching, and Option types
+- **Foldkit**: Functional UI framework with Effect-TS integration for component rendering and state management
 - **TailwindCSS**: Utility-first CSS framework
 - **TypeScript**: Type safety throughout the codebase
 
@@ -66,12 +66,18 @@ The app follows the Elm Architecture (Model-View-Update) pattern:
 
 **Domain Models (`src/domain/`)**:
 
+Modules designed to contain domain business logic.
+Domain models should only contain pure functions and constants.
+
 - `game.ts`: Core game logic, phases, and state transitions
 - `player.ts`: Player entity with roles (Master/Outsider/Commoner)
 - `lobby.ts`: Lobby management and ID generation
 - `timer.ts`: Game phase timing utilities
 
 **Pages (`src/pages/`)**:
+
+Each page is a main screen that users interact with.
+Pages should contain a minimum of business logic, instead importing from the domain modules.
 
 - Each page has its own model, view, and update functions
 - Landing: Player name input, lobby creation/joining
@@ -83,12 +89,12 @@ The app follows the Elm Architecture (Model-View-Update) pattern:
 1. **Landing**: Enter name, create/join lobby
 2. **Lobby**: Wait for players, start game
 3. **Game Phases**:
-   - Role Assignment: Random Master/Outsider/Commoner assignment
-   - Word Creation: Master creates secret word
-   - Share Secret Word: 30s timer to show word to Outsider
-   - Player Guessing: 5min guessing phase
-   - Voting: 5min voting to identify Outsider
-   - Results: Show winner and reset
+   - Phase 1: Role Assignment: Random Master/Outsider/Commoner assignment
+   - Phase 2: Word Creation: Master creates secret word
+   - Phase 3: Share Secret Word: 30s timer to show word to Outsider
+   - Phase 4: Player Guessing: 5min guessing phase
+   - Phase 5: Voting: 5min voting to identify Outsider
+   - Phase 6: Results: Show winner and reset
 
 ### Schema & Type Safety
 
@@ -113,3 +119,17 @@ The app follows the Elm Architecture (Model-View-Update) pattern:
 **State Updates**: All state updates are immutable - use spread operator to create new state objects.
 
 **Validation**: Form validation happens in update functions with error states in the models.
+
+## Style Guide
+
+Use double quotes for all string literals:
+```
+const myVar = "A String" 
+
+// Title
+h1(
+  [Class("text-3xl font-bold text-gray-800 mb-6 text-center")],
+  ["How to Play Outsider"],
+),
+
+```
