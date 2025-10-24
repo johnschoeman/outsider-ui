@@ -45,19 +45,19 @@ export const init = (): LandingModel => ({
 
 export const updatePlayerName =
   (name: string) =>
-    (model: LandingModel): LandingModel => ({
-      ...model,
-      playerName: name,
-      nameError: Option.none(),
-    })
+  (model: LandingModel): LandingModel => ({
+    ...model,
+    playerName: name,
+    nameError: Option.none(),
+  })
 
 export const updateJoinLobbyId =
   (lobbyId: string) =>
-    (model: LandingModel): LandingModel => ({
-      ...model,
-      joinLobbyId: lobbyId.toUpperCase(),
-      lobbyError: Option.none(),
-    })
+  (model: LandingModel): LandingModel => ({
+    ...model,
+    joinLobbyId: lobbyId.toUpperCase(),
+    lobbyError: Option.none(),
+  })
 
 export const validateName = (model: LandingModel): LandingModel => {
   const nameError = Player.validateName(model.playerName)
@@ -103,7 +103,7 @@ const header = (): Html => {
 
 const playerNameSection = (model: LandingModel): Html => {
   const nameHasError = Option.isSome(model.nameError)
-  
+
   return div(
     [Class("mb-6")],
     [
@@ -119,12 +119,7 @@ const playerNameSection = (model: LandingModel): Html => {
         ),
       ]),
       ...(nameHasError
-        ? [
-            p(
-              [Class("text-red-500 text-sm mt-1")],
-              [Option.getOrElse(model.nameError, () => "")],
-            ),
-          ]
+        ? [p([Class("text-red-500 text-sm mt-1")], [Option.getOrElse(model.nameError, () => "")])]
         : []),
     ],
   )
@@ -150,7 +145,7 @@ const createNewGameSection = (): Html => {
 
 const joinExistingGameSection = (model: LandingModel): Html => {
   const lobbyHasError = Option.isSome(model.lobbyError)
-  
+
   return div(
     [Class("border-t pt-4")],
     [
@@ -161,10 +156,7 @@ const joinExistingGameSection = (model: LandingModel): Html => {
           div(
             [],
             [
-              label(
-                [Class("block text-sm font-medium text-gray-700 mb-1")],
-                ["Lobby ID"],
-              ),
+              label([Class("block text-sm font-medium text-gray-700 mb-1")], ["Lobby ID"]),
               input([
                 Type("text"),
                 Value(model.joinLobbyId),
@@ -201,13 +193,7 @@ const joinExistingGameSection = (model: LandingModel): Html => {
 }
 
 const gameActionsSection = (model: LandingModel): Html => {
-  return div(
-    [Class("space-y-4")],
-    [
-      createNewGameSection(),
-      joinExistingGameSection(model),
-    ],
-  )
+  return div([Class("space-y-4")], [createNewGameSection(), joinExistingGameSection(model)])
 }
 
 export function view(model: LandingModel): Html {
@@ -220,11 +206,7 @@ export function view(model: LandingModel): Html {
     [
       div(
         [Class("bg-white rounded-lg shadow-2xl p-8 w-full max-w-md")],
-        [
-          header(),
-          playerNameSection(model),
-          gameActionsSection(model),
-        ],
+        [header(), playerNameSection(model), gameActionsSection(model)],
       ),
       ...(model.showRulesModal ? [renderRulesModal()] : []),
     ],
