@@ -6,7 +6,9 @@ export const NoOp = ts("NoOp")
 // Landing
 export const PlayerNameChanged = ts("PlayerNameChanged", { name: S.String })
 export const JoinLobbyIdChanged = ts("JoinLobbyIdChanged", { lobbyId: S.String })
-export const CreateLobbyClicked = ts("CreateLobbyClicked")
+export const CreateLobby = ts("CreateLobby")
+export const CreateLobbySuccess = ts("CreateLobbySuccess", { lobbyId: S.String })
+export const CreateLobbyFailure = ts("CreateLobbyFailure", { error: S.String })
 export const JoinLobbyClicked = ts("JoinLobbyClicked")
 export const ShowRules = ts("ShowRules")
 export const CloseRules = ts("CloseRules")
@@ -27,10 +29,12 @@ export const NewGame = ts("NewGame")
 export const Message = S.Union(
   NoOp,
 
-  // Lobby
+  // Landing
   PlayerNameChanged,
   JoinLobbyIdChanged,
-  CreateLobbyClicked,
+  CreateLobby,
+  CreateLobbySuccess,
+  CreateLobbyFailure,
   JoinLobbyClicked,
   ShowRules,
   CloseRules,
@@ -54,7 +58,9 @@ type NoOp = ST<typeof NoOp>
 // Landing
 type PlayerNameChanged = ST<typeof PlayerNameChanged>
 type JoinLobbyIdChanged = ST<typeof JoinLobbyIdChanged>
-type CreateLobbyClicked = ST<typeof CreateLobbyClicked>
+type CreateLobby = ST<typeof CreateLobby>
+export type CreateLobbySuccess = ST<typeof CreateLobbySuccess>
+export type CreateLobbyFailure = ST<typeof CreateLobbyFailure>
 type JoinLobbyClicked = ST<typeof JoinLobbyClicked>
 type ShowRules = ST<typeof ShowRules>
 type CloseRules = ST<typeof CloseRules>

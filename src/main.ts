@@ -1,4 +1,4 @@
-import { Match as M, Option, Schema as S } from "effect"
+import { Effect, Match as M, Option, Schema as S } from "effect"
 import { Runtime } from "foldkit"
 import { Class, Html, div, h1 } from "foldkit/html"
 
@@ -42,6 +42,24 @@ export const init = (): [AppModel, Runtime.Command<Message.Message>[]] => [
   [],
 ]
 
+// Commands
+
+const createLobby: Runtime.Command<Message.CreateLobbySuccess | Message.CreateLobbyFailure> =
+  Effect.gen(function* () {
+    const result = yield* Effect.tryPromise(() =>
+      fetch("/api/lobby", { method: "POST" }).then((res) => {
+        if (!res.ok) throw new Error("Create Lobby request failed")
+        return res.json() as unknown as { lobbyId: string }
+      }),
+    )
+
+    return Message.CreateLobbySuccess.make({ lobbyId: result.lobbyId })
+  }).pipe(
+    Effect.catchAll((error) =>
+      Effect.succeed(Message.CreateLobbyFailure.make({ error: error.message })),
+    ),
+  )
+
 // Update
 
 export const update = (
@@ -73,18 +91,15 @@ export const update = (
         [],
       ],
 
-      CreateLobbyClicked: () => {
-        const validatedLanding = Landing.validateName(model.landingPage)
-        if (Option.isSome(validatedLanding.nameError)) {
-          return [
-            {
-              ...model,
-              landingPage: validatedLanding,
-            },
-            [],
-          ]
+      CreateLobby: () => {
+        const isValidForm = true
+        if (isValidForm) {
+          return [{ ...model }, [createLobby]]
+        } else {
+          return [{ ...model }, []]
         }
-
+      },
+      CreateLobbySuccess: () => {
         const lobbyId = Lobby.generateLobbyId()
         const playerId = crypto.randomUUID()
         const lobbyModel = LobbyPage.init(lobbyId, playerId, model.currentPlayerName)
@@ -95,11 +110,13 @@ export const update = (
             currentPage: "Lobby",
             currentPlayerId: Option.some(playerId),
             currentLobbyId: Option.some(lobbyId),
-            landingPage: validatedLanding,
             lobbyPage: Option.some(lobbyModel),
           },
           [],
         ]
+      },
+      CreateLobbyFailure: () => {
+        return [{ ...model }, []]
       },
 
       JoinLobbyClicked: () => {
