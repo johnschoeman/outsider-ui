@@ -13,7 +13,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",
     "effect": "^3.18.4",
-    "foldkit": "0.3.0-canary.2",
+    "foldkit": "0.10.0-canary.2",
     "tailwindcss": "^4.1.14"
   },
   "devDependencies": {

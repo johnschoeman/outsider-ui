@@ -1,4 +1,5 @@
-import { Option, Schema as S } from "effect"
+import { Effect, Match as M, Option, Schema as S } from "effect"
+import { Runtime } from "foldkit"
 import {
   Class,
   Html,
@@ -14,17 +15,18 @@ import {
   label,
   p,
 } from "foldkit/html"
+import { ts } from "foldkit/schema"
+import { evo } from "foldkit/struct"
 
 import { Lobby, Player } from "../../domain"
-import * as Message from "../../message"
 import { renderRulesModal } from "./rulesModal"
 
 // Model
 
 export const LandingModel = S.Struct({
-  playerName: S.String,
-  joinLobbyId: S.String,
+  playerNameInput: S.String,
   nameError: S.Option(S.String),
+  lobbyIdInput: S.String,
   lobbyError: S.Option(S.String),
   showRulesModal: S.Boolean,
 })
@@ -34,51 +36,115 @@ export type LandingModel = S.Schema.Type<typeof LandingModel>
 // Init
 
 export const init = (): LandingModel => ({
-  playerName: "",
-  joinLobbyId: "",
+  playerNameInput: "",
   nameError: Option.none(),
+  lobbyIdInput: "",
   lobbyError: Option.none(),
   showRulesModal: false,
 })
 
+// Message
+
+export const NoOp = ts("NoOp")
+export const PlayerNameInputChanged = ts("PlayerNameInputChanged", { nameInput: S.String })
+export const LobbyIdInputChanged = ts("LobbyIdInputChanged", { lobbyIdInput: S.String })
+export const CreateLobby = ts("CreateLobby")
+export const CreateLobbySuccess = ts("CreateLobbySuccess", { lobbyId: S.String })
+export const CreateLobbyFailure = ts("CreateLobbyFailure", { error: S.String })
+export const JoinLobbyClicked = ts("JoinLobbyClicked")
+export const ShowRules = ts("ShowRules")
+export const CloseRules = ts("CloseRules")
+
+export const Message = S.Union(
+  NoOp,
+  PlayerNameInputChanged,
+  LobbyIdInputChanged,
+  CreateLobby,
+  CreateLobbySuccess,
+  CreateLobbyFailure,
+  JoinLobbyClicked,
+  ShowRules,
+  CloseRules,
+)
+
+type PlayerNameInputChanged = typeof PlayerNameInputChanged.Type
+type LobbyIdInputChanged = typeof LobbyIdInputChanged.Type
+type CreateLobby = typeof CreateLobby.Type
+type CreateLobbySuccess = typeof CreateLobbySuccess.Type
+type CreateLobbyFailure = typeof CreateLobbyFailure.Type
+type JoinLobbyClicked = typeof JoinLobbyClicked.Type
+type ShowRules = typeof ShowRules.Type
+type CloseRules = typeof CloseRules.Type
+
+type Message = typeof Message.Type
+
+// Commands
+
+const createLobby: Runtime.Command<CreateLobbySuccess | CreateLobbyFailure> = Effect.gen(
+  function* () {
+    const result = yield* Effect.tryPromise(() =>
+      fetch("/api/lobby", { method: "POST" }).then((res) => {
+        if (!res.ok) throw new Error("Create Lobby request failed")
+        return res.json() as unknown as { lobbyId: string }
+      }),
+    )
+
+    return CreateLobbySuccess.make({ lobbyId: result.lobbyId })
+  },
+).pipe(
+  Effect.catchAll((error) => Effect.succeed(CreateLobbyFailure.make({ error: error.message }))),
+)
+
 // Update
 
-export const updatePlayerName =
-  (name: string) =>
-  (model: LandingModel): LandingModel => ({
-    ...model,
-    playerName: name,
-    nameError: Option.none(),
-  })
+export const update = (
+  model: LandingModel,
+  message: Message,
+): [LandingModel, ReadonlyArray<Effect.Effect<Message>>] => {
+  const returnValue = M.value(message).pipe(
+    M.withReturnType<[LandingModel, ReadonlyArray<Effect.Effect<Message>>]>(),
+    M.tagsExhaustive({
+      NoOp: () => {
+        const nextModel = evo(model, {})
+        return [nextModel, []]
+      },
+      PlayerNameInputChanged: ({ nameInput }) => {
+        const nextModel = evo(model, { playerNameInput: () => nameInput })
+        return [nextModel, []]
+      },
+      LobbyIdInputChanged: ({ lobbyIdInput }) => {
+        const nextModel = evo(model, { lobbyIdInput: () => lobbyIdInput })
+        return [nextModel, []]
+      },
+      CreateLobby: () => {
+        const nextModel = evo(model, {})
+        return [nextModel, []]
+      },
+      CreateLobbySuccess: () => {
+        const nextModel = evo(model, {})
+        return [nextModel, []]
+      },
+      CreateLobbyFailure: () => {
+        const nextModel = evo(model, {})
+        return [nextModel, []]
+      },
+      JoinLobbyClicked: () => {
+        const nextModel = evo(model, {})
+        return [nextModel, []]
+      },
+      ShowRules: () => {
+        const nextModel = evo(model, { showRulesModal: () => true })
+        return [nextModel, []]
+      },
+      CloseRules: () => {
+        const nextModel = evo(model, { showRulesModal: () => false })
+        return [nextModel, []]
+      },
+    }),
+  )
 
-export const updateJoinLobbyId =
-  (lobbyId: string) =>
-  (model: LandingModel): LandingModel => ({
-    ...model,
-    joinLobbyId: lobbyId.toUpperCase(),
-    lobbyError: Option.none(),
-  })
-
-export const validateName = (model: LandingModel): LandingModel => {
-  const nameError = Player.validateName(model.playerName)
-  return {
-    ...model,
-    nameError,
-  }
+  return returnValue
 }
-
-export const validateLobbyId = (model: LandingModel): LandingModel => {
-  const lobbyError = Lobby.validateLobbyId(model.joinLobbyId)
-  return {
-    ...model,
-    lobbyError,
-  }
-}
-
-export const toggleRulesModal = (model: LandingModel): LandingModel => ({
-  ...model,
-  showRulesModal: !model.showRulesModal,
-})
 
 // View
 
@@ -90,7 +156,7 @@ const header = (): Html => {
       p([Class("text-gray-600 mb-4")], ["A social deduction game"]),
       button(
         [
-          OnClick(() => Message.ShowRules.make()),
+          OnClick(() => ShowRules.make()),
           Class(
             "text-blue-600 hover:text-blue-800 underline font-medium transition-colors duration-200",
           ),
@@ -110,8 +176,8 @@ const playerNameSection = (model: LandingModel): Html => {
       label([Class("block text-sm font-medium text-gray-700 mb-2")], ["Your Name"]),
       input([
         Type("text"),
-        Value(model.playerName),
-        OnInput((value) => Message.PlayerNameChanged.make({ name: value })),
+        Value(model.playerNameInput),
+        OnInput((value) => PlayerNameInputChanged.make({ nameInput: value })),
         Class(
           `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
             nameHasError ? "border-red-500 bg-red-50" : "border-gray-300"
@@ -132,7 +198,7 @@ const createNewGameSection = (): Html => {
       h2([Class("text-lg font-semibold text-gray-800 mb-3")], ["Start New Game"]),
       button(
         [
-          OnClick(Message.CreateLobby.make()),
+          OnClick(CreateLobby.make()),
           Class(
             "w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
           ),
@@ -159,8 +225,8 @@ const joinExistingGameSection = (model: LandingModel): Html => {
               label([Class("block text-sm font-medium text-gray-700 mb-1")], ["Lobby ID"]),
               input([
                 Type("text"),
-                Value(model.joinLobbyId),
-                OnInput((value) => Message.JoinLobbyIdChanged.make({ lobbyId: value })),
+                Value(model.lobbyIdInput),
+                OnInput((value) => LobbyIdInputChanged.make({ lobbyIdInput: value })),
                 Class(
                   `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     lobbyHasError ? "border-red-500 bg-red-50" : "border-gray-300"
@@ -179,7 +245,7 @@ const joinExistingGameSection = (model: LandingModel): Html => {
           ),
           button(
             [
-              OnClick(() => Message.JoinLobbyClicked.make()),
+              OnClick(() => JoinLobbyClicked.make()),
               Class(
                 "w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
               ),
