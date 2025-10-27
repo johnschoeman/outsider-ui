@@ -1,11 +1,12 @@
 import { Class, Html, OnClick, button, div, h1, h2, h3, p, span } from "foldkit/html"
 
+import { LandingMessage } from "../../main"
 import { CloseRules } from "./landing"
 
 const closeButton = (): Html => {
   return button(
     [
-      OnClick(CloseRules.make()),
+      OnClick(LandingMessage.make({ message: CloseRules.make() })),
       Class("absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold"),
     ],
     ["×"],
@@ -203,7 +204,7 @@ const startPlayingButton = (): Html => {
     [
       button(
         [
-          OnClick(CloseRules.make()),
+          OnClick(LandingMessage.make({ message: CloseRules.make() })),
           Class(
             "bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition-colors duration-200",
           ),

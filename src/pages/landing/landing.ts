@@ -18,7 +18,7 @@ import {
 import { ts } from "foldkit/schema"
 import { evo } from "foldkit/struct"
 
-import { Lobby, Player } from "../../domain"
+import { LandingMessage } from "../../main"
 import { renderRulesModal } from "./rulesModal"
 
 // Model
@@ -118,7 +118,7 @@ export const update = (
       },
       CreateLobby: () => {
         const nextModel = evo(model, {})
-        return [nextModel, []]
+        return [nextModel, [createLobby]]
       },
       CreateLobbySuccess: () => {
         const nextModel = evo(model, {})
@@ -142,7 +142,6 @@ export const update = (
       },
     }),
   )
-
   return returnValue
 }
 
@@ -156,7 +155,7 @@ const header = (): Html => {
       p([Class("text-gray-600 mb-4")], ["A social deduction game"]),
       button(
         [
-          OnClick(() => ShowRules.make()),
+          OnClick(LandingMessage.make({ message: ShowRules.make() })),
           Class(
             "text-blue-600 hover:text-blue-800 underline font-medium transition-colors duration-200",
           ),
@@ -198,7 +197,7 @@ const createNewGameSection = (): Html => {
       h2([Class("text-lg font-semibold text-gray-800 mb-3")], ["Start New Game"]),
       button(
         [
-          OnClick(CreateLobby.make()),
+          OnClick(LandingMessage.make({ message: CreateLobby.make() })),
           Class(
             "w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
           ),
@@ -245,7 +244,7 @@ const joinExistingGameSection = (model: LandingModel): Html => {
           ),
           button(
             [
-              OnClick(() => JoinLobbyClicked.make()),
+              OnClick(JoinLobbyClicked.make()),
               Class(
                 "w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
               ),

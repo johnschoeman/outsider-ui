@@ -35,7 +35,7 @@ export const init = (): [AppModel, Runtime.Command<Message>[]] => [
 // Message
 
 export const NoOp = ts("NoOp")
-const LandingMessage = ts("LandingMessage", { message: Landing.Message })
+export const LandingMessage = ts("LandingMessage", { message: Landing.Message })
 
 export const Message = S.Union(NoOp, LandingMessage)
 
@@ -62,12 +62,10 @@ export const update = (
       LandingMessage: ({ message }) => {
         const [nextLandingPage, commands] = Landing.update(model.landingPage, message)
         const nextModel: AppModel = evo(model, { landingPage: () => nextLandingPage })
-        return [
-          nextModel,
-          commands.map(
-            Effect.map((landingMessage) => LandingMessage.make({ message: landingMessage })),
-          ),
-        ]
+        const nextCommands = commands.map(
+          Effect.map((landingMessage) => LandingMessage.make({ message: landingMessage })),
+        )
+        return [nextModel, nextCommands]
       },
     }),
   )
