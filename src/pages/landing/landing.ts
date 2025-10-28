@@ -17,8 +17,8 @@ import {
 } from "foldkit/html"
 import { ts } from "foldkit/schema"
 import { evo } from "foldkit/struct"
-
 import { LandingMessage } from "../../main"
+
 import { rulesModal } from "./rulesModal"
 
 // Model
@@ -27,7 +27,8 @@ export const LandingModel = S.Struct({
   playerNameInput: S.String,
   nameError: S.Option(S.String),
   lobbyIdInput: S.String,
-  lobbyError: S.Option(S.String),
+  lobbyIdError: S.Option(S.String),
+  createLobbyError: S.Option(S.String),
   showRulesModal: S.Boolean,
 })
 
@@ -39,7 +40,8 @@ export const init = (): LandingModel => ({
   playerNameInput: "",
   nameError: Option.none(),
   lobbyIdInput: "",
-  lobbyError: Option.none(),
+  lobbyIdError: Option.none(),
+  createLobbyError: Option.none(),
   showRulesModal: false,
 })
 
@@ -84,7 +86,9 @@ const createLobby: Runtime.Command<CreateLobbySuccess | CreateLobbyFailure> = Ef
   function* () {
     const result = yield* Effect.tryPromise(() =>
       fetch("/api/lobby", { method: "POST" }).then((res) => {
-        if (!res.ok) throw new Error("Create Lobby request failed")
+        if (!res.ok) {
+          throw new Error("Create Lobby request failed")
+        }
         return res.json() as unknown as { lobbyId: string }
       }),
     )
@@ -92,7 +96,10 @@ const createLobby: Runtime.Command<CreateLobbySuccess | CreateLobbyFailure> = Ef
     return CreateLobbySuccess.make({ lobbyId: result.lobbyId })
   },
 ).pipe(
-  Effect.catchAll((error) => Effect.succeed(CreateLobbyFailure.make({ error: error.message }))),
+  Effect.catchAll((error) => {
+    console.log(error.toJSON())
+    return Effect.succeed(CreateLobbyFailure.make({ error: error.message }))
+  }),
 )
 
 // Update
@@ -124,8 +131,8 @@ export const update = (
         const nextModel = evo(model, {})
         return [nextModel, []]
       },
-      CreateLobbyFailure: () => {
-        const nextModel = evo(model, {})
+      CreateLobbyFailure: ({ error }) => {
+        const nextModel = evo(model, { createLobbyError: () => Option.some(error) })
         return [nextModel, []]
       },
       JoinLobbyClicked: () => {
@@ -147,6 +154,16 @@ export const update = (
 
 // View
 
+const errorText = (error: Option.Option<string>): Html => {
+  const showError = Option.isSome(error)
+  
+  if (showError) {
+    return p([Class("text-red-500 text-sm mt-1")], [Option.getOrElse(error, () => "")])
+  } else {
+    return div()
+  }
+}
+
 const header = <ParentMessage>(toMessage: (message: Message) => ParentMessage): Html => {
   return div(
     [Class("text-center mb-8")],
@@ -167,7 +184,7 @@ const header = <ParentMessage>(toMessage: (message: Message) => ParentMessage): 
 }
 
 const playerNameSection = (model: LandingModel): Html => {
-  const nameHasError = Option.isSome(model.nameError)
+  const hasNameError = Option.isSome(model.nameError)
 
   return div(
     [Class("mb-6")],
@@ -179,18 +196,16 @@ const playerNameSection = (model: LandingModel): Html => {
         OnInput((value) => PlayerNameInputChanged.make({ nameInput: value })),
         Class(
           `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            nameHasError ? "border-red-500 bg-red-50" : "border-gray-300"
+            hasNameError ? "border-red-500 bg-red-50" : "border-gray-300"
           }`,
         ),
       ]),
-      ...(nameHasError
-        ? [p([Class("text-red-500 text-sm mt-1")], [Option.getOrElse(model.nameError, () => "")])]
-        : []),
+      errorText(model.nameError)
     ],
   )
 }
 
-const createNewGameSection = (): Html => {
+const createNewGameSection = (model: LandingModel): Html => {
   return div(
     [Class("border-t pt-4")],
     [
@@ -204,12 +219,13 @@ const createNewGameSection = (): Html => {
         ],
         ["Create Lobby"],
       ),
+      errorText(model.createLobbyError)
     ],
   )
 }
 
 const joinExistingGameSection = (model: LandingModel): Html => {
-  const lobbyHasError = Option.isSome(model.lobbyError)
+  const lobbyHasError = Option.isSome(model.lobbyIdError)
 
   return div(
     [Class("border-t pt-4")],
@@ -232,14 +248,7 @@ const joinExistingGameSection = (model: LandingModel): Html => {
                   }`,
                 ),
               ]),
-              ...(lobbyHasError
-                ? [
-                    p(
-                      [Class("text-red-500 text-sm mt-1")],
-                      [Option.getOrElse(model.lobbyError, () => "")],
-                    ),
-                  ]
-                : []),
+              errorText(model.lobbyIdError)
             ],
           ),
           button(
@@ -258,13 +267,10 @@ const joinExistingGameSection = (model: LandingModel): Html => {
 }
 
 const gameActionsSection = (model: LandingModel): Html => {
-  return div([Class("space-y-4")], [createNewGameSection(), joinExistingGameSection(model)])
+  return div([Class("space-y-4")], [createNewGameSection(model), joinExistingGameSection(model)])
 }
 
-export function view<ParentMessage>(
-  model: LandingModel,
-  toMessage: (message: Message) => ParentMessage,
-): Html {
+export function view<ParentMessage>(model: LandingModel, toMessage: (message: Message) => ParentMessage): Html {
   return div(
     [
       Class(
