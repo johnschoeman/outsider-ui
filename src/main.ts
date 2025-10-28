@@ -78,7 +78,7 @@ export const update = (
 const view = (model: AppModel): Html => {
   switch (model.currentPage) {
     case "Landing": {
-      return Landing.view(model.landingPage)
+      return Landing.view(model.landingPage, (message) => LandingMessage.make({ message: message }))
     }
 
     default: {

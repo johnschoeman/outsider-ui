@@ -19,7 +19,7 @@ import { ts } from "foldkit/schema"
 import { evo } from "foldkit/struct"
 
 import { LandingMessage } from "../../main"
-import { renderRulesModal } from "./rulesModal"
+import { rulesModal } from "./rulesModal"
 
 // Model
 
@@ -147,7 +147,7 @@ export const update = (
 
 // View
 
-const header = (): Html => {
+const header = <ParentMessage>(toMessage: (message: Message) => ParentMessage): Html => {
   return div(
     [Class("text-center mb-8")],
     [
@@ -155,7 +155,7 @@ const header = (): Html => {
       p([Class("text-gray-600 mb-4")], ["A social deduction game"]),
       button(
         [
-          OnClick(LandingMessage.make({ message: ShowRules.make() })),
+          OnClick(toMessage(ShowRules.make())),
           Class(
             "text-blue-600 hover:text-blue-800 underline font-medium transition-colors duration-200",
           ),
@@ -261,7 +261,10 @@ const gameActionsSection = (model: LandingModel): Html => {
   return div([Class("space-y-4")], [createNewGameSection(), joinExistingGameSection(model)])
 }
 
-export function view(model: LandingModel): Html {
+export function view<ParentMessage>(
+  model: LandingModel,
+  toMessage: (message: Message) => ParentMessage,
+): Html {
   return div(
     [
       Class(
@@ -271,9 +274,9 @@ export function view(model: LandingModel): Html {
     [
       div(
         [Class("bg-white rounded-lg shadow-2xl p-8 w-full max-w-md")],
-        [header(), playerNameSection(model), gameActionsSection(model)],
+        [header(toMessage), playerNameSection(model), gameActionsSection(model)],
       ),
-      ...(model.showRulesModal ? [renderRulesModal()] : []),
+      rulesModal(model.showRulesModal, toMessage(CloseRules.make())),
     ],
   )
 }

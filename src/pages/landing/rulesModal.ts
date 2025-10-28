@@ -1,12 +1,9 @@
 import { Class, Html, OnClick, button, div, h1, h2, h3, p, span } from "foldkit/html"
 
-import { LandingMessage } from "../../main"
-import { CloseRules } from "./landing"
-
-const closeButton = (): Html => {
+const closeButton = <Message>(closeModal: Message): Html => {
   return button(
     [
-      OnClick(LandingMessage.make({ message: CloseRules.make() })),
+      OnClick(closeModal),
       Class("absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl font-bold"),
     ],
     ["×"],
@@ -198,13 +195,13 @@ const gameSetup = (): Html => {
   )
 }
 
-const startPlayingButton = (): Html => {
+const startPlayingButton = <Message>(closeModal: Message): Html => {
   return div(
     [Class("text-center")],
     [
       button(
         [
-          OnClick(LandingMessage.make({ message: CloseRules.make() })),
+          OnClick(closeModal),
           Class(
             "bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition-colors duration-200",
           ),
@@ -215,23 +212,27 @@ const startPlayingButton = (): Html => {
   )
 }
 
-export const renderRulesModal = (): Html => {
-  return div(
-    [Class("fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50")],
-    [
-      div(
-        [Class("bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto p-6 relative")],
-        [
-          closeButton(),
-          title(),
-          gameOverview(),
-          rolesSection(),
-          gamePhaseSection(),
-          strategyTips(),
-          gameSetup(),
-          startPlayingButton(),
-        ],
-      ),
-    ],
-  )
+export const rulesModal = <Message>(showModal: boolean, closeModal: Message): Html => {
+  if (!showModal) {
+    return div()
+  } else {
+    return div(
+      [Class("fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50")],
+      [
+        div(
+          [Class("bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto p-6 relative")],
+          [
+            closeButton(closeModal),
+            title(),
+            gameOverview(),
+            rolesSection(),
+            gamePhaseSection(),
+            strategyTips(),
+            gameSetup(),
+            startPlayingButton(closeModal),
+          ],
+        ),
+      ],
+    )
+  }
 }
