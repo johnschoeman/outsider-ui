@@ -1,6 +1,6 @@
-# My Foldkit App
+# Outsider UI
 
-A Foldkit application built with Effect-TS.
+A Foldkit application built with Effect-TS for the Outsider game.
 
 ## Getting Started
 
@@ -8,6 +8,13 @@ A Foldkit application built with Effect-TS.
 pnpm install
 pnpm dev
 ```
+
+## Testing
+
+```
+pnpm validate  
+```
+
 
 ## Learn More
 

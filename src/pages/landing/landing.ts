@@ -1,15 +1,17 @@
 import {
   FetchHttpClient,
   HttpClient,
-  HttpClientError,
   HttpClientRequest,
   HttpClientResponse,
 } from "@effect/platform"
 import { Effect, Match as M, Option, Schema as S } from "effect"
 import { Runtime } from "foldkit"
+import { Html } from "foldkit/html"
+import { ts } from "foldkit/schema"
+import { evo } from "foldkit/struct"
+
 import {
   Class,
-  Html,
   OnClick,
   OnInput,
   Type,
@@ -21,11 +23,8 @@ import {
   input,
   label,
   p,
-} from "foldkit/html"
-import { ts } from "foldkit/schema"
-import { evo } from "foldkit/struct"
-
-import { LandingMessage } from "../../main"
+} from "../../html"
+import { Message } from "../../main"
 import { rulesModal } from "./rulesModal"
 
 // Model
@@ -64,7 +63,7 @@ export const JoinLobbyClicked = ts("JoinLobbyClicked")
 export const ShowRules = ts("ShowRules")
 export const CloseRules = ts("CloseRules")
 
-export const Message = S.Union(
+export const SubMessage = S.Union(
   NoOp,
   PlayerNameInputChanged,
   LobbyIdInputChanged,
@@ -85,7 +84,7 @@ type JoinLobbyClicked = typeof JoinLobbyClicked.Type
 type ShowRules = typeof ShowRules.Type
 type CloseRules = typeof CloseRules.Type
 
-type Message = typeof Message.Type
+type SubMessage = typeof SubMessage.Type
 
 // Commands
 
@@ -130,10 +129,10 @@ const createLobby = (
 
 export const update = (
   model: LandingModel,
-  message: Message,
-): [LandingModel, ReadonlyArray<Effect.Effect<Message>>] => {
-  const returnValue = M.value(message).pipe(
-    M.withReturnType<[LandingModel, ReadonlyArray<Effect.Effect<Message>>]>(),
+  subMessage: SubMessage,
+): [LandingModel, ReadonlyArray<Effect.Effect<SubMessage>>] => {
+  const returnValue = M.value(subMessage).pipe(
+    M.withReturnType<[LandingModel, ReadonlyArray<Effect.Effect<SubMessage>>]>(),
     M.tagsExhaustive({
       NoOp: () => {
         const nextModel = evo(model, {})
@@ -184,11 +183,11 @@ const errorText = (error: Option.Option<string>): Html => {
   if (showError) {
     return p([Class("text-red-500 text-sm mt-1")], [Option.getOrElse(error, () => "")])
   } else {
-    return div()
+    return div([], [])
   }
 }
 
-const header = <ParentMessage>(toMessage: (message: Message) => ParentMessage): Html => {
+const header = (toMessage: (message: SubMessage) => Message): Html => {
   return div(
     [Class("text-center mb-8")],
     [
@@ -207,9 +206,9 @@ const header = <ParentMessage>(toMessage: (message: Message) => ParentMessage): 
   )
 }
 
-const playerNameSection = <ParentMessage>(
+const playerNameSection = (
   model: LandingModel,
-  toMessage: (message: Message) => ParentMessage,
+  toMessage: (message: SubMessage) => Message,
 ): Html => {
   const hasNameError = Option.isSome(model.nameError)
 
@@ -232,9 +231,9 @@ const playerNameSection = <ParentMessage>(
   )
 }
 
-const createNewGameSection = <ParentMessage>(
+const createNewGameSection = (
   model: LandingModel,
-  toMessage: (message: Message) => ParentMessage,
+  toMessage: (message: SubMessage) => Message,
 ): Html => {
   return div(
     [Class("border-t pt-4")],
@@ -254,9 +253,9 @@ const createNewGameSection = <ParentMessage>(
   )
 }
 
-const joinExistingGameSection = <ParentMessage>(
+const joinExistingGameSection = (
   model: LandingModel,
-  toMessage: (message: Message) => ParentMessage,
+  toMessage: (message: SubMessage) => Message,
 ): Html => {
   const lobbyHasError = Option.isSome(model.lobbyIdError)
 
@@ -286,7 +285,7 @@ const joinExistingGameSection = <ParentMessage>(
           ),
           button(
             [
-              OnClick(JoinLobbyClicked.make()),
+              OnClick(toMessage(JoinLobbyClicked.make())),
               Class(
                 "w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
               ),
@@ -299,20 +298,17 @@ const joinExistingGameSection = <ParentMessage>(
   )
 }
 
-const gameActionsSection = <ParentMessage>(
+const gameActionsSection = (
   model: LandingModel,
-  toMessage: (message: Message) => ParentMessage,
+  toMessage: (message: SubMessage) => Message,
 ): Html => {
   return div(
     [Class("space-y-4")],
-    [createNewGameSection(model, toMessage), joinExistingGameSection(model)],
+    [createNewGameSection(model, toMessage), joinExistingGameSection(model, toMessage)],
   )
 }
 
-export function view<ParentMessage>(
-  model: LandingModel,
-  toMessage: (message: Message) => ParentMessage,
-): Html {
+export function view(model: LandingModel, toMessage: (message: SubMessage) => Message): Html {
   return div(
     [
       Class(

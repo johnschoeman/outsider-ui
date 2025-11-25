@@ -1,6 +1,9 @@
-import { Class, Html, OnClick, button, div, h1, h2, h3, p, span } from "foldkit/html"
+import { Html } from "foldkit/html"
 
-const closeButton = <Message>(closeModal: Message): Html => {
+import { Class, OnClick, button, div, h1, h2, h3, p, span } from "../../html"
+import { Message } from "../../main"
+
+const closeButton = (closeModal: Message): Html => {
   return button(
     [
       OnClick(closeModal),
@@ -195,7 +198,7 @@ const gameSetup = (): Html => {
   )
 }
 
-const startPlayingButton = <Message>(closeModal: Message): Html => {
+const startPlayingButton = (closeModal: Message): Html => {
   return div(
     [Class("text-center")],
     [
@@ -212,9 +215,9 @@ const startPlayingButton = <Message>(closeModal: Message): Html => {
   )
 }
 
-export const rulesModal = <Message>(showModal: boolean, closeModal: Message): Html => {
+export const rulesModal = (showModal: boolean, closeModal: Message): Html => {
   if (!showModal) {
-    return div()
+    return div([], [])
   } else {
     return div(
       [Class("fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50")],

@@ -7,10 +7,11 @@ import {
 } from "@effect/platform"
 import { Effect, Match as M, Option, Schema as S } from "effect"
 import { Runtime } from "foldkit"
-import { Class, Html, div, h1 } from "foldkit/html"
+import { Html } from "foldkit/html"
 import { ts } from "foldkit/schema"
 import { evo } from "foldkit/struct"
 
+import { Class, div, h1 } from "./html"
 import { Landing } from "./pages"
 
 // Model
@@ -46,7 +47,7 @@ export const init = (): [AppModel, Runtime.Command<Message>[]] => [
 export const NoOp = ts("NoOp")
 export const CheckAPIHealthSuccess = ts("CheckAPIHealthSuccess")
 export const CheckAPIHealthFailure = ts("CheckAPIHealthFailure", { reason: S.String })
-export const LandingMessage = ts("LandingMessage", { message: Landing.Message })
+export const LandingMessage = ts("LandingMessage", { message: Landing.SubMessage })
 
 export const Message = S.Union(NoOp, CheckAPIHealthSuccess, CheckAPIHealthFailure, LandingMessage)
 
@@ -55,7 +56,7 @@ type LandingMessage = typeof LandingMessage.Type
 type CheckAPIHealthSuccess = typeof CheckAPIHealthSuccess.Type
 type CheckAPIHealthFailure = typeof CheckAPIHealthFailure.Type
 
-type Message = typeof Message.Type
+export type Message = typeof Message.Type
 
 // Commands
 
