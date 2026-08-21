@@ -39,6 +39,17 @@ pnpm lint
 pnpm format
 ```
 
+## Verification
+
+After code changes, run:
+
+```bash
+pnpm typecheck
+pnpm lint
+```
+
+No automated test suite exists. For UI changes, run `pnpm dev` and manually exercise the change in the browser.
+
 ## Architecture
 
 ### State Management Pattern
@@ -133,3 +144,33 @@ h1(
   ["How to Play Outsider"],
 )
 ```
+
+## Behavioral Rules
+
+- Think before coding: state assumptions explicitly, surface confusion instead of guessing
+- Simplicity first: implement only requested features, no speculative abstractions
+- Surgical changes: touch only what's needed, match existing style, don't refactor adjacent code unprompted
+
+## Where to Look
+
+| Task | Location |
+|------|----------|
+| Game rules, phase transitions, roles | `src/domain/game.ts`, `src/domain/player.ts` |
+| Lobby ID generation/validation | `src/domain/lobby.ts` |
+| Phase timers | `src/domain/timer.ts` |
+| Landing page (name entry, lobby create/join) | `src/pages/landing/` |
+| App-level state, message dispatch | `src/app.ts` |
+| Runtime/bootstrap | `src/main.ts` |
+| Detailed stack notes | `.claude/references/stack.md` |
+| Cross-cutting architecture | `.claude/references/architecture.md` |
+
+## Git Workflow
+
+- Never auto-commit — only commit when the user explicitly asks
+- Create new commits rather than amending, unless explicitly asked to amend
+- Never force-push, reset --hard, or skip hooks without explicit user approval
+
+## Voice
+
+- Be extremely concise. No conversational filler or preambles.
+- Present plans as actionable checklists.
