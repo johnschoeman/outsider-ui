@@ -1,22 +1,15 @@
-import {
-  FetchHttpClient,
-  HttpClient,
-  HttpClientError,
-  HttpClientRequest,
-  HttpClientResponse,
-} from "@effect/platform"
 import { Effect, Match as M, Option, Schema as S } from "effect"
-import { Runtime } from "foldkit"
-import { Html } from "foldkit/html"
+import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/unstable/http"
+import { Command, Runtime } from "foldkit"
+import { Html, HtmlBuilder } from "foldkit/html"
 import { ts } from "foldkit/schema"
 import { evo } from "foldkit/struct"
 
-import { Class, div, h1 } from "./html"
 import { Landing } from "./pages"
 
 // Model
 
-export const AppPage = S.Literal("Landing", "Lobby", "Game")
+export const AppPage = S.Literals(["Landing", "Lobby", "Game"])
 export type AppPage = S.Schema.Type<typeof AppPage>
 
 export const AppModel = S.Struct({
@@ -31,7 +24,7 @@ export type AppModel = S.Schema.Type<typeof AppModel>
 
 // Init
 
-export const init = (): [AppModel, Runtime.Command<Message>[]] => [
+export const init = (): [AppModel, Command.Command<Message>[]] => [
   {
     currentPage: "Landing",
     currentPlayerName: Option.none(),
@@ -39,7 +32,7 @@ export const init = (): [AppModel, Runtime.Command<Message>[]] => [
     apiHealthCheck: Option.none(),
     landingPage: Landing.init(),
   },
-  [getHealth()],
+  [GetHealth()],
 ]
 
 // Message
@@ -49,7 +42,7 @@ export const CheckAPIHealthSuccess = ts("CheckAPIHealthSuccess")
 export const CheckAPIHealthFailure = ts("CheckAPIHealthFailure", { reason: S.String })
 export const LandingMessage = ts("LandingMessage", { message: Landing.SubMessage })
 
-export const Message = S.Union(NoOp, CheckAPIHealthSuccess, CheckAPIHealthFailure, LandingMessage)
+export const Message = S.Union([NoOp, CheckAPIHealthSuccess, CheckAPIHealthFailure, LandingMessage])
 
 type NoOp = typeof NoOp.Type
 type LandingMessage = typeof LandingMessage.Type
@@ -62,8 +55,9 @@ export type Message = typeof Message.Type
 
 // const API_URL = "http://localhost:3000/api/health-check"
 const API_URL = "api/health-check"
-const getHealth = (): Runtime.Command<CheckAPIHealthSuccess | CheckAPIHealthFailure> =>
-  Effect.gen(function* () {
+const GetHealth = Command.define("GetHealth", {
+  messages: [CheckAPIHealthSuccess, CheckAPIHealthFailure],
+  execute: Effect.gen(function* () {
     console.log("running api health check")
     const client = yield* HttpClient.HttpClient
     return yield* HttpClientRequest.get(API_URL).pipe(
@@ -72,31 +66,28 @@ const getHealth = (): Runtime.Command<CheckAPIHealthSuccess | CheckAPIHealthFail
     )
   }).pipe(
     Effect.provide(FetchHttpClient.layer),
-    Effect.map(() => CheckAPIHealthSuccess.make()),
+    Effect.map(() => CheckAPIHealthSuccess()),
     Effect.catchTags({
       HttpBodyError: (httpBodyError) => {
-        const tag: string = httpBodyError.reason._tag
-        const message = `Http Body Error - tag: ${tag}`
+        const message = `Http Body Error - tag: ${httpBodyError.reason._tag}`
         return Effect.succeed(CheckAPIHealthFailure.make({ reason: message }))
       },
-      RequestError: (requestError) => {
-        const reason: string = requestError.reason
-        const message = `Http Body Error - tag: ${reason}`
+      HttpClientError: (httpClientError) => {
+        const message = `Http Client Error - reason: ${httpClientError.reason._tag}`
         return Effect.succeed(CheckAPIHealthFailure.make({ reason: message }))
       },
-      ResponseError: (_ResponseError) =>
-        Effect.succeed(CheckAPIHealthFailure.make({ reason: "Http Response Error" })),
     }),
-  )
+  ),
+})
 
 // Update
 
 export const update = (
   model: AppModel,
   message: Message,
-): [AppModel, ReadonlyArray<Runtime.Command<Message>>] => {
+): [AppModel, ReadonlyArray<Command.Command<Message>>] => {
   const returnValue = M.value(message).pipe(
-    M.withReturnType<[AppModel, Runtime.Command<Message>[]]>(),
+    M.withReturnType<[AppModel, ReadonlyArray<Command.Command<Message>>]>(),
     M.tagsExhaustive({
       NoOp: () => {
         const nextModel = evo(model, {})
@@ -115,8 +106,8 @@ export const update = (
       LandingMessage: ({ message }) => {
         const [nextLandingPage, commands] = Landing.update(model.landingPage, message)
         const nextModel: AppModel = evo(model, { landingPage: () => nextLandingPage })
-        const nextCommands = commands.map(
-          Effect.map((landingMessage) => LandingMessage.make({ message: landingMessage })),
+        const nextCommands = Command.mapMessages(commands, (landingMessage) =>
+          LandingMessage.make({ message: landingMessage }),
         )
         return [nextModel, nextCommands]
       },
@@ -128,13 +119,18 @@ export const update = (
 
 // View
 
-const view = (model: AppModel): Html => {
+const view = (model: AppModel, h: HtmlBuilder<Message>): Html => {
   switch (model.currentPage) {
     case "Landing": {
-      return Landing.view(model.landingPage, (message) => LandingMessage.make({ message: message }))
+      return Landing.view(
+        model.landingPage,
+        (message) => LandingMessage.make({ message: message }),
+        h,
+      )
     }
 
     default: {
+      const { div, h1, Class } = h
       return div(
         [Class("min-h-screen bg-gray-100 flex items-center justify-center")],
         [h1([Class("text-2xl text-gray-600")], ["Unknown state"])],

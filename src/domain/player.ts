@@ -1,6 +1,6 @@
 import { Option, Schema as S } from "effect"
 
-export const PlayerRole = S.Literal("Master", "Outsider", "Commoner")
+export const PlayerRole = S.Literals(["Master", "Outsider", "Commoner"])
 export type PlayerRole = S.Schema.Type<typeof PlayerRole>
 
 export const Player = S.Struct({

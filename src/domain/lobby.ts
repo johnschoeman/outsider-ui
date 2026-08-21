@@ -14,8 +14,8 @@ export const isValidLobbyId = (lobbyId: string): boolean => {
 }
 
 export const LobbyId = S.String.pipe(
-  S.filter(isValidLobbyId, {
-    message: () => "Lobby ID must be 4 uppercase letters (e.g., ABCD)",
+  S.refine((value): value is string => isValidLobbyId(value), {
+    message: "Lobby ID must be 4 uppercase letters (e.g., ABCD)",
   }),
 )
 

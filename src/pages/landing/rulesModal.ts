@@ -1,9 +1,9 @@
-import { Html } from "foldkit/html"
+import { Html, HtmlBuilder } from "foldkit/html"
 
-import { Class, OnClick, button, div, h1, h2, h3, p, span } from "../../html"
 import { Message } from "../../main"
 
-const closeButton = (closeModal: Message): Html => {
+const closeButton = (closeModal: Message, h: HtmlBuilder<Message>): Html => {
+  const { button, Class, OnClick } = h
   return button(
     [
       OnClick(closeModal),
@@ -13,11 +13,13 @@ const closeButton = (closeModal: Message): Html => {
   )
 }
 
-const title = (): Html => {
+const title = (h: HtmlBuilder<Message>): Html => {
+  const { h1, Class } = h
   return h1([Class("text-3xl font-bold text-gray-800 mb-6 text-center")], ["How to Play Outsider"])
 }
 
-const gameOverview = (): Html => {
+const gameOverview = (h: HtmlBuilder<Message>): Html => {
+  const { div, h2, p, Class } = h
   return div(
     [Class("mb-8")],
     [
@@ -40,7 +42,8 @@ const gameOverview = (): Html => {
   )
 }
 
-const rolesSection = (): Html => {
+const rolesSection = (h: HtmlBuilder<Message>): Html => {
+  const { div, h2, h3, p, Class } = h
   return div(
     [Class("mb-8")],
     [
@@ -84,7 +87,13 @@ const rolesSection = (): Html => {
   )
 }
 
-const gamePhase = (color: string, phaseTitle: string, description: string): Html => {
+const gamePhase = (
+  color: string,
+  phaseTitle: string,
+  description: string,
+  h: HtmlBuilder<Message>,
+): Html => {
+  const { div, h3, p, Class } = h
   return div(
     [Class(`border-l-4 border-${color}-400 bg-${color}-50 p-4`)],
     [
@@ -94,7 +103,8 @@ const gamePhase = (color: string, phaseTitle: string, description: string): Html
   )
 }
 
-const gamePhaseSection = (): Html => {
+const gamePhaseSection = (h: HtmlBuilder<Message>): Html => {
+  const { div, h2, Class } = h
   return div(
     [Class("mb-8")],
     [
@@ -106,27 +116,32 @@ const gamePhaseSection = (): Html => {
             "purple",
             "Phase 1: Role Assignment",
             "Everyone secretly learns their role. The Master announces themselves.",
+            h,
           ),
-          gamePhase("yellow", "Phase 2: Word Creation", "The Master creates a secret word."),
+          gamePhase("yellow", "Phase 2: Word Creation", "The Master creates a secret word.", h),
           gamePhase(
             "blue",
             "Phase 3: Word Sharing",
             'The Outsider see the secret word. The Commoners see "Waiting for others..."',
+            h,
           ),
           gamePhase(
             "green",
             "Phase 4: Word Guessing (5 minutes)",
             "Players take turns asking yes or no questions to the Master. If the players guess the word within time they move onto the Voting Phase. If the players do not guess the word, everyone loses and the game restarts.",
+            h,
           ),
           gamePhase(
             "red",
             "Phase 5: Discussion & Voting (5 minutes)",
             "Argue for who you think the outsider is. Everyone votes for who they think is the Outsider.",
+            h,
           ),
           gamePhase(
             "gray",
             "Phase 6: Results",
             "Results are revealed! See who won, how everyone voted, and what roles everyone had.",
+            h,
           ),
         ],
       ),
@@ -134,7 +149,13 @@ const gamePhaseSection = (): Html => {
   )
 }
 
-const strategyTip = (color: string, headerText: string, tips: string[]): Html => {
+const strategyTip = (
+  color: string,
+  headerText: string,
+  tips: string[],
+  h: HtmlBuilder<Message>,
+): Html => {
+  const { div, h3, p, span, Class } = h
   return div(
     [Class(`bg-${color}-50 border border-${color}-300 rounded-lg p-4`)],
     [
@@ -149,7 +170,8 @@ const strategyTip = (color: string, headerText: string, tips: string[]): Html =>
   )
 }
 
-const strategyTips = (): Html => {
+const strategyTips = (h: HtmlBuilder<Message>): Html => {
+  const { div, h2, Class } = h
   return div(
     [Class("mb-8")],
     [
@@ -157,30 +179,46 @@ const strategyTips = (): Html => {
       div(
         [Class("grid md:grid-cols-3 gap-6")],
         [
-          strategyTip("blue", "For Commoners:", [
-            "Ask questions quickly",
-            "Watch for players who give leading questions",
-            "Accuse others during the vote to get more information",
-          ]),
+          strategyTip(
+            "blue",
+            "For Commoners:",
+            [
+              "Ask questions quickly",
+              "Watch for players who give leading questions",
+              "Accuse others during the vote to get more information",
+            ],
+            h,
+          ),
 
-          strategyTip("red", "For the Outsider:", [
-            "Lead the group to right answer without being too obvious",
-            "Agree with others and build on their questions",
-            "Deflect suspicion onto other players",
-          ]),
+          strategyTip(
+            "red",
+            "For the Outsider:",
+            [
+              "Lead the group to right answer without being too obvious",
+              "Agree with others and build on their questions",
+              "Deflect suspicion onto other players",
+            ],
+            h,
+          ),
 
-          strategyTip("yellow", "For the Master:", [
-            "Answer questions quickly",
-            "If your word has multiple meanings, pick one and be consistent",
-            "Keep an eye out for players that guess a little too well",
-          ]),
+          strategyTip(
+            "yellow",
+            "For the Master:",
+            [
+              "Answer questions quickly",
+              "If your word has multiple meanings, pick one and be consistent",
+              "Keep an eye out for players that guess a little too well",
+            ],
+            h,
+          ),
         ],
       ),
     ],
   )
 }
 
-const gameSetup = (): Html => {
+const gameSetup = (h: HtmlBuilder<Message>): Html => {
+  const { div, h2, p, Class } = h
   return div(
     [Class("mb-6")],
     [
@@ -198,7 +236,8 @@ const gameSetup = (): Html => {
   )
 }
 
-const startPlayingButton = (closeModal: Message): Html => {
+const startPlayingButton = (closeModal: Message, h: HtmlBuilder<Message>): Html => {
+  const { div, button, Class, OnClick } = h
   return div(
     [Class("text-center")],
     [
@@ -215,7 +254,13 @@ const startPlayingButton = (closeModal: Message): Html => {
   )
 }
 
-export const rulesModal = (showModal: boolean, closeModal: Message): Html => {
+export const rulesModal = (
+  showModal: boolean,
+  closeModal: Message,
+  h: HtmlBuilder<Message>,
+): Html => {
+  const { div, Class } = h
+
   if (!showModal) {
     return div([], [])
   } else {
@@ -225,14 +270,14 @@ export const rulesModal = (showModal: boolean, closeModal: Message): Html => {
         div(
           [Class("bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto p-6 relative")],
           [
-            closeButton(closeModal),
-            title(),
-            gameOverview(),
-            rolesSection(),
-            gamePhaseSection(),
-            strategyTips(),
-            gameSetup(),
-            startPlayingButton(closeModal),
+            closeButton(closeModal, h),
+            title(h),
+            gameOverview(h),
+            rolesSection(h),
+            gamePhaseSection(h),
+            strategyTips(h),
+            gameSetup(h),
+            startPlayingButton(closeModal, h),
           ],
         ),
       ],

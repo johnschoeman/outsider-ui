@@ -2,17 +2,17 @@ import { Option, Schema as S } from "effect"
 
 import { Player } from "./player"
 
-export const GamePhase = S.Literal(
+export const GamePhase = S.Literals([
   "RoleAssignment",
   "WordCreation",
   "ShareSecretWord",
   "PlayerGuessing",
   "Voting",
   "Results",
-)
+])
 export type GamePhase = S.Schema.Type<typeof GamePhase>
 
-export const GameStatus = S.Literal("Pending", "InProgress", "Completed")
+export const GameStatus = S.Literals(["Pending", "InProgress", "Completed"])
 export type GameStatus = S.Schema.Type<typeof GameStatus>
 
 export const GameState = S.Struct({
@@ -25,7 +25,7 @@ export const GameState = S.Struct({
   phaseTimer: S.Option(S.Number), // seconds remaining
   masterId: S.Option(S.String),
   outsiderId: S.Option(S.String),
-  winner: S.Option(S.Literal("OutsiderWins", "TeamWins")),
+  winner: S.Option(S.Literals(["OutsiderWins", "TeamWins"])),
 })
 
 export type GameState = S.Schema.Type<typeof GameState>

@@ -1,29 +1,15 @@
+import { Effect, Match as M, Option, Schema as S } from "effect"
 import {
   FetchHttpClient,
   HttpClient,
   HttpClientRequest,
   HttpClientResponse,
-} from "@effect/platform"
-import { Effect, Match as M, Option, Schema as S } from "effect"
-import { Runtime } from "foldkit"
-import { Html } from "foldkit/html"
+} from "effect/unstable/http"
+import { Command } from "foldkit"
+import { Html, HtmlBuilder } from "foldkit/html"
 import { ts } from "foldkit/schema"
 import { evo } from "foldkit/struct"
 
-import {
-  Class,
-  OnClick,
-  OnInput,
-  Type,
-  Value,
-  button,
-  div,
-  h1,
-  h2,
-  input,
-  label,
-  p,
-} from "../../html"
 import { Message } from "../../main"
 import { rulesModal } from "./rulesModal"
 
@@ -63,7 +49,7 @@ export const JoinLobbyClicked = ts("JoinLobbyClicked")
 export const ShowRules = ts("ShowRules")
 export const CloseRules = ts("CloseRules")
 
-export const SubMessage = S.Union(
+export const SubMessage = S.Union([
   NoOp,
   PlayerNameInputChanged,
   LobbyIdInputChanged,
@@ -73,7 +59,7 @@ export const SubMessage = S.Union(
   JoinLobbyClicked,
   ShowRules,
   CloseRules,
-)
+])
 
 type PlayerNameInputChanged = typeof PlayerNameInputChanged.Type
 type LobbyIdInputChanged = typeof LobbyIdInputChanged.Type
@@ -94,45 +80,46 @@ const Lobby = S.Struct({
 
 // const API_URL = "http://localhost:3000/api/lobby"
 const API_URL = "/api/lobby"
-const createLobby = (
-  playerName: string,
-): Runtime.Command<CreateLobbySuccess | CreateLobbyFailure> =>
-  Effect.gen(function* () {
-    const client = yield* HttpClient.HttpClient
-    return yield* HttpClientRequest.post(API_URL).pipe(
-      HttpClientRequest.bodyJson({ playerName }),
-      Effect.flatMap(client.execute),
-      Effect.flatMap(HttpClientResponse.schemaBodyJson(Lobby)),
-    )
-  }).pipe(
-    Effect.provide(FetchHttpClient.layer),
-    Effect.map(({ id }) => CreateLobbySuccess.make({ lobbyId: id })),
-    Effect.catchTags({
-      HttpBodyError: (httpBodyError) => {
-        const tag: string = httpBodyError.reason._tag
-        const message = `Http Body Error - tag: ${tag}`
-        return Effect.succeed(CreateLobbyFailure.make({ errorMessage: message }))
-      },
-      RequestError: (_RequestError) =>
-        Effect.succeed(CreateLobbyFailure.make({ errorMessage: "Http Request Error" })),
-      ResponseError: (_ResponseError) =>
-        Effect.succeed(CreateLobbyFailure.make({ errorMessage: "Http Response Error" })),
-      ParseError: (parseError) => {
-        const errorString: string = parseError.toString()
-        const message = `Parse Error: ${errorString}`
-        return Effect.succeed(CreateLobbyFailure.make({ errorMessage: message }))
-      },
-    }),
-  )
+const CreateLobbyCommand = Command.define("CreateLobby", {
+  args: { playerName: S.String },
+  messages: [CreateLobbySuccess, CreateLobbyFailure],
+  execute: ({ playerName }) =>
+    Effect.gen(function* () {
+      const client = yield* HttpClient.HttpClient
+      return yield* HttpClientRequest.post(API_URL).pipe(
+        HttpClientRequest.bodyJson({ playerName }),
+        Effect.flatMap(client.execute),
+        Effect.flatMap(HttpClientResponse.schemaBodyJson(Lobby)),
+      )
+    }).pipe(
+      Effect.provide(FetchHttpClient.layer),
+      Effect.map(({ id }) => CreateLobbySuccess.make({ lobbyId: id })),
+      Effect.catchTags({
+        HttpBodyError: (httpBodyError) => {
+          const message = `Http Body Error - tag: ${httpBodyError.reason._tag}`
+          return Effect.succeed(CreateLobbyFailure.make({ errorMessage: message }))
+        },
+        HttpClientError: (httpClientError) => {
+          const message = `Http Client Error - reason: ${httpClientError.reason._tag}`
+          return Effect.succeed(CreateLobbyFailure.make({ errorMessage: message }))
+        },
+        SchemaError: (schemaError) => {
+          const errorString: string = String(schemaError)
+          const message = `Schema Error: ${errorString}`
+          return Effect.succeed(CreateLobbyFailure.make({ errorMessage: message }))
+        },
+      }),
+    ),
+})
 
 // Update
 
 export const update = (
   model: LandingModel,
   subMessage: SubMessage,
-): [LandingModel, ReadonlyArray<Effect.Effect<SubMessage>>] => {
+): [LandingModel, ReadonlyArray<Command.Command<SubMessage>>] => {
   const returnValue = M.value(subMessage).pipe(
-    M.withReturnType<[LandingModel, ReadonlyArray<Effect.Effect<SubMessage>>]>(),
+    M.withReturnType<[LandingModel, ReadonlyArray<Command.Command<SubMessage>>]>(),
     M.tagsExhaustive({
       NoOp: () => {
         const nextModel = evo(model, {})
@@ -148,7 +135,7 @@ export const update = (
       },
       CreateLobby: () => {
         const nextModel = evo(model, {})
-        return [nextModel, [createLobby(model.playerNameInput)]]
+        return [nextModel, [CreateLobbyCommand({ playerName: model.playerNameInput })]]
       },
       CreateLobbySuccess: () => {
         const nextModel = evo(model, {})
@@ -177,7 +164,8 @@ export const update = (
 
 // View
 
-const errorText = (error: Option.Option<string>): Html => {
+const errorText = (error: Option.Option<string>, h: HtmlBuilder<Message>): Html => {
+  const { div, p, Class } = h
   const showError = Option.isSome(error)
 
   if (showError) {
@@ -187,7 +175,8 @@ const errorText = (error: Option.Option<string>): Html => {
   }
 }
 
-const header = (toMessage: (message: SubMessage) => Message): Html => {
+const header = (toMessage: (message: SubMessage) => Message, h: HtmlBuilder<Message>): Html => {
+  const { div, button, h1, p, Class, OnClick } = h
   return div(
     [Class("text-center mb-8")],
     [
@@ -195,7 +184,7 @@ const header = (toMessage: (message: SubMessage) => Message): Html => {
       p([Class("text-gray-600 mb-4")], ["A social deduction game"]),
       button(
         [
-          OnClick(toMessage(ShowRules.make())),
+          OnClick(toMessage(ShowRules())),
           Class(
             "text-blue-600 hover:text-blue-800 underline font-medium transition-colors duration-200",
           ),
@@ -209,7 +198,9 @@ const header = (toMessage: (message: SubMessage) => Message): Html => {
 const playerNameSection = (
   model: LandingModel,
   toMessage: (message: SubMessage) => Message,
+  h: HtmlBuilder<Message>,
 ): Html => {
+  const { div, input, label, Class, OnInput, Type, Value } = h
   const hasNameError = Option.isSome(model.nameError)
 
   return div(
@@ -226,7 +217,7 @@ const playerNameSection = (
           }`,
         ),
       ]),
-      errorText(model.nameError),
+      errorText(model.nameError, h),
     ],
   )
 }
@@ -234,21 +225,23 @@ const playerNameSection = (
 const createNewGameSection = (
   model: LandingModel,
   toMessage: (message: SubMessage) => Message,
+  h: HtmlBuilder<Message>,
 ): Html => {
+  const { div, button, h2, Class, OnClick } = h
   return div(
     [Class("border-t pt-4")],
     [
       h2([Class("text-lg font-semibold text-gray-800 mb-3")], ["Start New Game"]),
       button(
         [
-          OnClick(toMessage(CreateLobby.make())),
+          OnClick(toMessage(CreateLobby())),
           Class(
             "w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
           ),
         ],
         ["Create Lobby"],
       ),
-      errorText(model.createLobbyError),
+      errorText(model.createLobbyError, h),
     ],
   )
 }
@@ -256,7 +249,9 @@ const createNewGameSection = (
 const joinExistingGameSection = (
   model: LandingModel,
   toMessage: (message: SubMessage) => Message,
+  h: HtmlBuilder<Message>,
 ): Html => {
+  const { div, button, h2, input, label, Class, OnClick, OnInput, Type, Value } = h
   const lobbyHasError = Option.isSome(model.lobbyIdError)
 
   return div(
@@ -280,12 +275,12 @@ const joinExistingGameSection = (
                   }`,
                 ),
               ]),
-              errorText(model.lobbyIdError),
+              errorText(model.lobbyIdError, h),
             ],
           ),
           button(
             [
-              OnClick(toMessage(JoinLobbyClicked.make())),
+              OnClick(toMessage(JoinLobbyClicked())),
               Class(
                 "w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
               ),
@@ -301,14 +296,21 @@ const joinExistingGameSection = (
 const gameActionsSection = (
   model: LandingModel,
   toMessage: (message: SubMessage) => Message,
+  h: HtmlBuilder<Message>,
 ): Html => {
+  const { div, Class } = h
   return div(
     [Class("space-y-4")],
-    [createNewGameSection(model, toMessage), joinExistingGameSection(model, toMessage)],
+    [createNewGameSection(model, toMessage, h), joinExistingGameSection(model, toMessage, h)],
   )
 }
 
-export function view(model: LandingModel, toMessage: (message: SubMessage) => Message): Html {
+export function view(
+  model: LandingModel,
+  toMessage: (message: SubMessage) => Message,
+  h: HtmlBuilder<Message>,
+): Html {
+  const { div, Class } = h
   return div(
     [
       Class(
@@ -319,12 +321,12 @@ export function view(model: LandingModel, toMessage: (message: SubMessage) => Me
       div(
         [Class("bg-white rounded-lg shadow-2xl p-8 w-full max-w-md")],
         [
-          header(toMessage),
-          playerNameSection(model, toMessage),
-          gameActionsSection(model, toMessage),
+          header(toMessage, h),
+          playerNameSection(model, toMessage, h),
+          gameActionsSection(model, toMessage, h),
         ],
       ),
-      rulesModal(model.showRulesModal, toMessage(CloseRules.make())),
+      rulesModal(model.showRulesModal, toMessage(CloseRules()), h),
     ],
   )
 }
