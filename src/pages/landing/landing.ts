@@ -11,6 +11,7 @@ import { ts } from "foldkit/schema"
 import { evo } from "foldkit/struct"
 
 import { Message } from "../../main"
+import { buttonClasses, inputClasses } from "./button"
 import { rulesModal } from "./rulesModal"
 
 // Model
@@ -169,7 +170,7 @@ const errorText = (error: Option.Option<string>, h: HtmlBuilder<Message>): Html 
   const showError = Option.isSome(error)
 
   if (showError) {
-    return p([Class("text-red-500 text-sm mt-1")], [Option.getOrElse(error, () => "")])
+    return p([Class("text-error text-sm mt-1")], [Option.getOrElse(error, () => "")])
   } else {
     return div([], [])
   }
@@ -180,13 +181,13 @@ const header = (toMessage: (message: SubMessage) => Message, h: HtmlBuilder<Mess
   return div(
     [Class("text-center mb-8")],
     [
-      h1([Class("text-4xl font-bold text-gray-800 mb-2")], ["Outsider"]),
-      p([Class("text-gray-600 mb-4")], ["A social deduction game"]),
+      h1([Class("text-4xl font-bold text-ink mb-2")], ["Outsider"]),
+      p([Class("text-ink-muted mb-4")], ["A social deduction game"]),
       button(
         [
           OnClick(toMessage(ShowRules())),
           Class(
-            "text-blue-600 hover:text-blue-800 underline font-medium transition-colors duration-200",
+            "text-ink hover:text-ink-muted underline font-medium transition-colors duration-200",
           ),
         ],
         ["📖 How to Play"],
@@ -206,16 +207,12 @@ const playerNameSection = (
   return div(
     [Class("mb-6")],
     [
-      label([Class("block text-sm font-medium text-gray-700 mb-2")], ["Your Name"]),
+      label([Class("block text-sm font-medium text-ink-muted mb-2")], ["Your Name"]),
       input([
         Type("text"),
         Value(model.playerNameInput),
         OnInput((value) => toMessage(PlayerNameInputChanged.make({ nameInput: value }))),
-        Class(
-          `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            hasNameError ? "border-red-500 bg-red-50" : "border-gray-300"
-          }`,
-        ),
+        Class(inputClasses(hasNameError)),
       ]),
       errorText(model.nameError, h),
     ],
@@ -231,14 +228,9 @@ const createNewGameSection = (
   return div(
     [Class("border-t pt-4")],
     [
-      h2([Class("text-lg font-semibold text-gray-800 mb-3")], ["Start New Game"]),
+      h2([Class("text-lg font-semibold text-ink mb-3")], ["Start New Game"]),
       button(
-        [
-          OnClick(toMessage(CreateLobby())),
-          Class(
-            "w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
-          ),
-        ],
+        [OnClick(toMessage(CreateLobby())), Class(`w-full ${buttonClasses("primary")}`)],
         ["Create Lobby"],
       ),
       errorText(model.createLobbyError, h),
@@ -257,34 +249,25 @@ const joinExistingGameSection = (
   return div(
     [Class("border-t pt-4")],
     [
-      h2([Class("text-lg font-semibold text-gray-800 mb-3")], ["Join Existing Game"]),
+      h2([Class("text-lg font-semibold text-ink mb-3")], ["Join Existing Game"]),
       div(
         [Class("space-y-3")],
         [
           div(
             [],
             [
-              label([Class("block text-sm font-medium text-gray-700 mb-1")], ["Lobby ID"]),
+              label([Class("block text-sm font-medium text-ink-muted mb-1")], ["Lobby ID"]),
               input([
                 Type("text"),
                 Value(model.lobbyIdInput),
                 OnInput((value) => toMessage(LobbyIdInputChanged.make({ lobbyIdInput: value }))),
-                Class(
-                  `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    lobbyHasError ? "border-red-500 bg-red-50" : "border-gray-300"
-                  }`,
-                ),
+                Class(inputClasses(lobbyHasError)),
               ]),
               errorText(model.lobbyIdError, h),
             ],
           ),
           button(
-            [
-              OnClick(toMessage(JoinLobbyClicked())),
-              Class(
-                "w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed",
-              ),
-            ],
+            [OnClick(toMessage(JoinLobbyClicked())), Class(`w-full ${buttonClasses("secondary")}`)],
             ["Join Lobby"],
           ),
         ],
@@ -312,14 +295,10 @@ export function view(
 ): Html {
   const { div, Class } = h
   return div(
-    [
-      Class(
-        "min-h-screen bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center p-4",
-      ),
-    ],
+    [Class("min-h-screen bg-surface flex items-center justify-center p-4")],
     [
       div(
-        [Class("bg-white rounded-lg shadow-2xl p-8 w-full max-w-md")],
+        [Class("bg-surface-card rounded-lg shadow-2xl p-8 w-full max-w-md")],
         [
           header(toMessage, h),
           playerNameSection(model, toMessage, h),

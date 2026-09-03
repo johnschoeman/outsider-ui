@@ -132,8 +132,8 @@ const view = (model: AppModel, h: HtmlBuilder<Message>): Html => {
     default: {
       const { div, h1, Class } = h
       return div(
-        [Class("min-h-screen bg-gray-100 flex items-center justify-center")],
-        [h1([Class("text-2xl text-gray-600")], ["Unknown state"])],
+        [Class("min-h-screen bg-surface flex items-center justify-center")],
+        [h1([Class("text-2xl text-ink-muted")], ["Unknown state"])],
       )
     }
   }
