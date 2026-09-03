@@ -1,3 +1,5 @@
+commit-msg.txt
+
 # Dependencies
 node_modules/
 pnpm-lock.yaml
